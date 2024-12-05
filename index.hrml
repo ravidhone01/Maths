@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Experiments</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #f4f4f9;
+    }
+    header {
+      background-color: #4caf50;
+      color: white;
+      padding: 15px 0;
+      text-align: center;
+      width: 100%;
+    }
+    .menu {
+      margin: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .menu button {
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      margin: 10px;
+      padding: 15px 20px;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .menu button:hover {
+      background-color: #45a049;
+    }
+    .experiment {
+      display: none;
+      margin: 20px;
+      text-align: center;
+    }
+    .experiment h2 {
+      margin-bottom: 15px;
+    }
+    .experiment div {
+      margin: 10px 0;
+    }
+    input[type="number"], input[type="text"] {
+      padding: 10px;
+      width: 80%;
+      max-width: 300px;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    button.quiz-btn {
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button.quiz-btn:hover {
+      background-color: #1976d2;
+    }
+    footer {
+      margin-top: auto;
+      padding: 10px;
+      background-color: #333;
+      color: white;
+      width: 100%;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Math Experiments</h1>
+    <p>Interactive Experiments for Arithmetic, Fractions, and Clocks</p>
+  </header>
+  <div class="menu">
+    <button onclick="showExperiment('arithmetic')">Arithmetic</button>
+    <button onclick="showExperiment('fractions')">Fractions</button>
+    <button onclick="showExperiment('clock')">Clock Reading</button>
+  </div>
+  <div id="arithmetic" class="experiment">
+    <h2>Arithmetic Experiment</h2>
+    <div>
+      <label>Enter two numbers:</label><br>
+      <input type="number" id="num1" placeholder="Number 1">
+      <input type="number" id="num2" placeholder="Number 2"><br>
+      <button class="quiz-btn" onclick="calculate()">Calculate</button>
+    </div>
+    <p id="arithmetic-result"></p>
+  </div>
+  <div id="fractions" class="experiment">
+    <h2>Fractions Experiment</h2>
+    <div>
+      <p>Visualize fractions: Imagine a pizza divided into slices.</p>
+      <input type="number" id="slices" placeholder="Total slices (e.g., 8)">
+      <input type="number" id="eaten" placeholder="Slices eaten (e.g., 3)"><br>
+      <button class="quiz-btn" onclick="showFraction()">Show Fraction</button>
+    </div>
+    <p id="fractions-result"></p>
+  </div>
+  <div id="clock" class="experiment">
+    <h2>Clock Reading Experiment</h2>
+    <div>
+      <p>What time is it?</p>
+      <input type="text" id="time-answer" placeholder="Enter time in HH:MM"><br>
+      <button class="quiz-btn" onclick="checkTime()">Check Answer</button>
+    </div>
+    <p id="clock-result"></p>
+  </div>
+  <footer>
+    <p>© 2024 Math Experiments | Science Exhibition</p>
+  </footer>
+  <script>
+    function showExperiment(id) {
+      document.querySelectorAll('.experiment').forEach(exp => {
+        exp.style.display = 'none';
+      });
+      document.getElementById(id).style.display = 'block';
+    }
+
+    function calculate() {
+      const num1 = parseFloat(document.getElementById('num1').value);
+      const num2 = parseFloat(document.getElementById('num2').value);
+      if (isNaN(num1) || isNaN(num2)) {
+        document.getElementById('arithmetic-result').textContent = "Please enter valid numbers!";
+        return;
+      }
+      const sum = num1 + num2;
+      const product = num1 * num2;
+      const division = num2 !== 0 ? (num1 / num2).toFixed(2) : "undefined (division by zero)";
+      document.getElementById('arithmetic-result').textContent =
+        `Sum: ${sum}, Product: ${product}, Division: ${division}`;
+    }
+
+    function showFraction() {
+      const slices = parseInt(document.getElementById('slices').value);
+      const eaten = parseInt(document.getElementById('eaten').value);
+      if (isNaN(slices) || isNaN(eaten) || slices <= 0) {
+        document.getElementById('fractions-result').textContent = "Please enter valid numbers!";
+        return;
+      }
+      const fraction = `${eaten}/${slices}`;
+      document.getElementById('fractions-result').textContent =
+        `You have eaten ${fraction} of the pizza.`;
+    }
+
+    function checkTime() {
+      const correctTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const userTime = document.getElementById('time-answer').value.trim();
+      document.getElementById('clock-result').textContent =
+        userTime === correctTime ? "Correct! That's the current time." : `Wrong! Current time is ${correctTime}.`;
+    }
+  </script>
+</body>
+</html>
