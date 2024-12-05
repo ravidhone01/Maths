@@ -72,6 +72,32 @@
       transform-origin: 0 0;
     }
 
+    /* Placeholder Styles */
+    .receiversContainer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .receiver {
+      width: 80px;
+      height: 80px;
+      background: #ffd1dc;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .receiver img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+    }
+
     input {
       padding: 10px;
       border-radius: 10px;
@@ -106,31 +132,16 @@
     <label for="pizzaSlices">Enter Number of Slices (1-10):</label>
     <input type="number" id="pizzaSlices" value="5" min="1" max="10">
     <button onclick="sharePizza()">Share Pizza</button>
+    <div class="receiversContainer" id="receiversContainer"></div>
   </div>
 
   <script>
     const pizza = document.getElementById('pizza');
+    const receiversContainer = document.getElementById('receiversContainer');
 
-    // Function to share pizza
-    function sharePizza() {
-      const numSlices = Math.min(10, Math.max(1, Math.round(Number(document.getElementById('pizzaSlices').value))));
-
-      // Clear previous slices
-      pizza.innerHTML = '';
-
-      // Create slices
-      for (let i = 0; i < numSlices; i++) {
-        const slice = document.createElement('div');
-        slice.classList.add('slice');
-        slice.style.backgroundColor = `hsl(${(i * 360) / numSlices}, 70%, 60%)`; // Unique color for each slice
-        slice.style.transform = `rotate(${(i * 360) / numSlices}deg)`;
-        slice.style.clipPath = `polygon(50% 50%, 100% 0, 100% ${100 / numSlices}%)`; // Dynamically adjusts slice size
-        pizza.appendChild(slice);
-      }
-    }
-
-    // Initial setup
-    sharePizza();
-  </script>
-</body>
-</html>
+    // List of character images
+    const characters = [
+      'https://cdn-icons-png.flaticon.com/512/4140/4140047.png',
+      'https://cdn-icons-png.flaticon.com/512/4140/4140051.png',
+      'https://cdn-icons-png.flaticon.com/512/4140/4140048.png',
+      'https://cdn-icons-png.flaticon.com/512/4140/4140061.png',
