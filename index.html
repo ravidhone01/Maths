@@ -3,147 +3,149 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fractions in Everyday Life</title>
+  <title>Pizza Sharing Game</title>
   <style>
-    /* General Styles */
     body {
+      font-family: Arial, sans-serif;
       margin: 0;
-      font-family: 'Arial', sans-serif;
-      background-color: #f9f5ff;
-      background-image: url('https://example.com/anime-background.jpg'); /* Add anime-themed background */
-      background-size: cover;
-      background-attachment: fixed;
+      padding: 0;
+      background-color: #f5f5f5;
     }
+
     header {
+      background: #ff6f61;
+      color: white;
       text-align: center;
       padding: 20px;
-      color: white;
-      background: rgba(0, 0, 0, 0.7);
-      font-size: 2rem;
+      font-size: 1.5rem;
     }
-    .menu {
+
+    #gameContainer {
+      text-align: center;
+      margin: 20px auto;
+      max-width: 600px;
+    }
+
+    canvas {
+      border: 2px solid #ddd;
+      margin: 20px auto;
+    }
+
+    input {
+      width: 50px;
+      padding: 5px;
+      font-size: 1rem;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      background: #ff6f61;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #ff856f;
+    }
+
+    .characters {
       display: flex;
       justify-content: center;
       gap: 20px;
-      margin: 20px;
+      margin-top: 20px;
     }
-    .menu button {
-      padding: 15px 25px;
-      font-size: 1.2rem;
-      border: none;
-      cursor: pointer;
-      border-radius: 10px;
-      background: #ff6f61;
-      color: white;
-      transition: transform 0.3s;
-    }
-    .menu button:hover {
-      transform: scale(1.1);
-    }
-    .experiment {
-      display: none;
-      padding: 20px;
+
+    .character {
       text-align: center;
+      font-size: 0.9rem;
     }
-    .active {
-      display: block;
-    }
-    canvas, svg {
-      display: block;
-      margin: 20px auto;
+
+    .character img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 2px solid #ddd;
     }
   </style>
 </head>
 <body>
-  <header>Fractions in Everyday Life</header>
-  <div class="menu">
-    <button onclick="showExperiment('pizza')">🍕 Pizza Sharing Game</button>
-    <button onclick="showExperiment('fuel')">⛽ Fuel Gauge Simulator</button>
-    <button onclick="showExperiment('time')">⏰ Time Management Planner</button>
-  </div>
-
-  <div id="pizza" class="experiment">
-    <h2>Pizza Sharing Game</h2>
+  <header>🍕 Pizza Sharing Game</header>
+  <div id="gameContainer">
     <canvas id="pizzaCanvas" width="300" height="300"></canvas>
     <br>
-    <label>Slices: <input type="number" id="pizzaSlices" value="8" min="1"></label>
-    <button onclick="slicePizza()">Slice Pizza</button>
-    <p id="pizzaResult"></p>
-  </div>
-
-  <div id="fuel" class="experiment">
-    <h2>Fuel Gauge Simulator</h2>
-    <svg id="fuelGauge" width="300" height="150" viewBox="0 0 300 150">
-      <path d="M 50 100 A 50 50 0 0 1 250 100" fill="none" stroke="#ccc" stroke-width="20" />
-      <path id="fuelPath" d="M 50 100 A 50 50 0 0 1 150 50" fill="none" stroke="green" stroke-width="20" />
-    </svg>
-    <label>Miles Driven: <input type="number" id="milesDriven" value="0" min="0"></label>
-    <button onclick="updateFuel()">Update Fuel</button>
-    <p id="fuelResult"></p>
-  </div>
-
-  <div id="time" class="experiment">
-    <h2>Time Management Planner</h2>
-    <canvas id="timeCanvas" width="300" height="300"></canvas>
-    <br>
-    <label>Sleep Hours: <input type="number" id="sleepHours" value="8" min="0" max="24"></label>
-    <label>Work Hours: <input type="number" id="workHours" value="8" min="0" max="24"></label>
-    <button onclick="updateTime()">Update Chart</button>
+    <label for="pizzaSlices">Enter Number of Slices (1-10):</label>
+    <input type="number" id="pizzaSlices" value="8" min="1" max="10">
+    <button onclick="sharePizza()">Share Pizza</button>
+    <div id="pizzaResult"></div>
+    <div class="characters" id="charactersContainer"></div>
   </div>
 
   <script>
-    // Show Experiment Function
-    function showExperiment(id) {
-      document.querySelectorAll('.experiment').forEach(el => el.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-    }
-
-    // Pizza Sharing Game
     const pizzaCanvas = document.getElementById('pizzaCanvas');
     const pizzaCtx = pizzaCanvas.getContext('2d');
-    function slicePizza() {
-      const slices = parseInt(document.getElementById('pizzaSlices').value);
-      pizzaCtx.clearRect(0, 0, pizzaCanvas.width, pizzaCanvas.height);
+    const charactersContainer = document.getElementById('charactersContainer');
+
+    // Anime Characters Data
+    const characters = [
+      { name: "Naruto", img: "https://via.placeholder.com/80?text=Naruto" },
+      { name: "Luffy", img: "https://via.placeholder.com/80?text=Luffy" },
+      { name: "Goku", img: "https://via.placeholder.com/80?text=Goku" },
+      { name: "Sakura", img: "https://via.placeholder.com/80?text=Sakura" },
+      { name: "Ichigo", img: "https://via.placeholder.com/80?text=Ichigo" },
+    ];
+
+    // Generate Unique Colors
+    function generateColors(count) {
+      const colors = [];
+      for (let i = 0; i < count; i++) {
+        colors.push(`hsl(${(360 / count) * i}, 70%, 70%)`);
+      }
+      return colors;
+    }
+
+    // Draw Pizza and Share with Characters
+    function sharePizza() {
+      let slices = parseInt(document.getElementById('pizzaSlices').value);
+      if (isNaN(slices) || slices < 1) slices = 1;
+      if (slices > 10) slices = 10;
+
+      const colors = generateColors(slices);
       const angle = (2 * Math.PI) / slices;
+
+      // Clear Canvas and Draw Pizza
+      pizzaCtx.clearRect(0, 0, pizzaCanvas.width, pizzaCanvas.height);
       for (let i = 0; i < slices; i++) {
         pizzaCtx.beginPath();
         pizzaCtx.moveTo(150, 150);
         pizzaCtx.arc(150, 150, 150, i * angle, (i + 1) * angle);
-        pizzaCtx.fillStyle = i % 2 ? '#ff6f61' : '#ffa6a6';
+        pizzaCtx.fillStyle = colors[i];
         pizzaCtx.fill();
+        pizzaCtx.stroke();
       }
-      document.getElementById('pizzaResult').innerText = `Your pizza is sliced into ${slices} parts.`;
-    }
 
-    // Fuel Gauge Simulator
-    function updateFuel() {
-      const miles = parseInt(document.getElementById('milesDriven').value);
-      const fuelPercentage = Math.max(0, 100 - miles * 0.5);
-      const angle = (fuelPercentage / 100) * Math.PI;
-      document.getElementById('fuelPath').setAttribute('d', `M 50 100 A 50 50 0 0 1 ${50 + 100 * Math.cos(angle)} ${100 - 100 * Math.sin(angle)}`);
-      document.getElementById('fuelResult').innerText = `Fuel Remaining: ${fuelPercentage.toFixed(1)}%`;
-    }
-
-    // Time Management Planner
-    const timeCanvas = document.getElementById('timeCanvas');
-    const timeCtx = timeCanvas.getContext('2d');
-    function updateTime() {
-      const sleep = parseInt(document.getElementById('sleepHours').value);
-      const work = parseInt(document.getElementById('workHours').value);
-      const leisure = 24 - sleep - work;
-      const angles = [sleep, work, leisure].map(h => (h / 24) * 2 * Math.PI);
-      timeCtx.clearRect(0, 0, timeCanvas.width, timeCanvas.height);
-      let startAngle = 0;
-      ['#a6e3e9', '#ff6f61', '#ffa6a6'].forEach((color, i) => {
-        timeCtx.beginPath();
-        timeCtx.moveTo(150, 150);
-        timeCtx.arc(150, 150, 150, startAngle, startAngle + angles[i]);
-        timeCtx.fillStyle = color;
-        timeCtx.fill();
-        startAngle += angles[i];
+      // Share Pizza with Characters
+      charactersContainer.innerHTML = "";
+      const selectedCharacters = characters.slice(0, slices);
+      selectedCharacters.forEach((character, index) => {
+        const characterDiv = document.createElement("div");
+        characterDiv.classList.add("character");
+        characterDiv.innerHTML = `
+          <img src="${character.img}" alt="${character.name}">
+          <p>${character.name}</p>
+          <p>Slice: ${index + 1}</p>
+        `;
+        charactersContainer.appendChild(characterDiv);
       });
+
+      // Show Result
+      document.getElementById("pizzaResult").innerText = `${slices} slices shared with ${slices} characters!`;
     }
+
+    // Initialize Default Pizza
+    sharePizza();
   </script>
 </body>
 </html>
-
