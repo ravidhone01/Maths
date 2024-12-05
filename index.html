@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Realistic Pizza Sharing Game</title>
+  <title>Dynamic Pizza Sharing Game</title>
   <style>
     /* Global Styles */
     body {
@@ -11,11 +11,19 @@
       margin: 0;
       padding: 0;
       background: linear-gradient(120deg, #ffecd2, #fcb69f);
+      background-size: 200% 200%;
+      animation: gradientAnimation 10s ease infinite;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
       height: 100vh;
+    }
+
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     header {
@@ -40,62 +48,13 @@
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
     }
 
-    .pizza {
-      position: relative;
-      width: 300px;
-      height: 300px;
-      margin: 20px auto;
+    canvas {
+      border: 5px solid #ff6f61;
       border-radius: 50%;
-      background: #ffba77; /* Base color for the crust */
-      box-shadow: inset 0 -15px 0 #e89c5b; /* Crust shadow for 3D effect */
-    }
-
-    .pizza::after {
-      content: '';
-      position: absolute;
-      top: 10%;
-      left: 10%;
-      width: 80%;
-      height: 80%;
-      background: #ffe4c4; /* Cheese color */
-      border-radius: 50%;
-    }
-
-    .slice {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 150px;
-      height: 150px;
-      background: transparent;
-      clip-path: polygon(50% 50%, 100% 0, 100% 100%);
-      transform-origin: 0 0;
-    }
-
-    /* Placeholder Styles */
-    .receiversContainer {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 15px;
-      margin-top: 20px;
-    }
-
-    .receiver {
-      width: 80px;
-      height: 80px;
-      background: #ffd1dc;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    .receiver img {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
+      margin: 20px 0;
+      width: 100%;
+      max-width: 300px;
+      height: auto;
     }
 
     input {
@@ -122,26 +81,111 @@
       background: #ff856f;
       transform: scale(1.1);
     }
+
+    .slicesContainer {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .sliceFly {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #ff6f61;
+      animation: flyAnimation 1.5s ease forwards;
+    }
+
+    @keyframes flyAnimation {
+      0% { opacity: 1; transform: translate(0, 0); }
+      100% { opacity: 0; transform: translate(var(--x), var(--y)); }
+    }
+
+    /* Placeholder people receiving pizza */
+    .receiver {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(120deg, #ffe2d8, #ff856f);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.2rem;
+      font-weight: bold;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
   </style>
 </head>
 <body>
-  <header>🍕 Realistic Pizza Sharing Game</header>
+  <header>🍕 Dynamic Pizza Sharing Game</header>
   <div id="gameContainer">
-    <div class="pizza" id="pizza"></div>
+    <canvas id="pizzaCanvas" width="300" height="300"></canvas>
     <br>
     <label for="pizzaSlices">Enter Number of Slices (1-10):</label>
     <input type="number" id="pizzaSlices" value="5" min="1" max="10">
     <button onclick="sharePizza()">Share Pizza</button>
-    <div class="receiversContainer" id="receiversContainer"></div>
+    <div class="slicesContainer" id="receiversContainer"></div>
   </div>
 
   <script>
-    const pizza = document.getElementById('pizza');
+    const pizzaCanvas = document.getElementById('pizzaCanvas');
+    const pizzaCtx = pizzaCanvas.getContext('2d');
     const receiversContainer = document.getElementById('receiversContainer');
 
-    // List of character images
-    const characters = [
-      'https://cdn-icons-png.flaticon.com/512/4140/4140047.png',
-      'https://cdn-icons-png.flaticon.com/512/4140/4140051.png',
-      'https://cdn-icons-png.flaticon.com/512/4140/4140048.png',
-      'https://cdn-icons-png.flaticon.com/512/4140/4140061.png',
+    function drawPizza(slices) {
+      const colors = ['#ff6f61', '#ffa041', '#ffdd41', '#9ded41', '#41edc4', '#4187ed', '#9141ed', '#ed41d9', '#ed416e', '#5c5c5c'];
+      pizzaCtx.clearRect(0, 0, pizzaCanvas.width, pizzaCanvas.height);
+      const centerX = pizzaCanvas.width / 2;
+      const centerY = pizzaCanvas.height / 2;
+      const radius = 140;
+      const sliceAngle = (2 * Math.PI) / slices;
+
+      for (let i = 0; i < slices; i++) {
+        pizzaCtx.beginPath();
+        pizzaCtx.moveTo(centerX, centerY);
+        pizzaCtx.arc(centerX, centerY, radius, i * sliceAngle, (i + 1) * sliceAngle);
+        pizzaCtx.closePath();
+        pizzaCtx.fillStyle = colors[i % colors.length];
+        pizzaCtx.fill();
+        pizzaCtx.strokeStyle = '#fff';
+        pizzaCtx.lineWidth = 2;
+        pizzaCtx.stroke();
+      }
+    }
+
+    function sharePizza() {
+      const slicesInput = document.getElementById('pizzaSlices');
+      let slices = parseInt(slicesInput.value);
+
+      // Validate slices
+      if (isNaN(slices) || slices < 1) slices = 1;
+      if (slices > 10) slices = 10;
+      slicesInput.value = slices;
+
+      drawPizza(slices);
+
+      receiversContainer.innerHTML = '';
+
+      for (let i = 0; i < slices; i++) {
+        const receiver = document.createElement('div');
+        receiver.className = 'receiver';
+        receiver.textContent = i + 1;
+        receiversContainer.appendChild(receiver);
+
+        const slice = document.createElement('div');
+        slice.className = 'sliceFly';
+        slice.style.setProperty('--x', `${(i - 5) * 50}px`);
+        slice.style.setProperty('--y', `${150}px`);
+        document.body.appendChild(slice);
+
+        setTimeout(() => slice.remove(), 1500);
+      }
+    }
+
+    drawPizza(5);
+  </script>
+</body>
+</html>
