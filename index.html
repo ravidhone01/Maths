@@ -29,6 +29,7 @@
     canvas {
       border: 2px solid #ddd;
       margin: 20px auto;
+      display: block;
     }
 
     input {
@@ -55,6 +56,7 @@
       display: flex;
       justify-content: center;
       gap: 20px;
+      flex-wrap: wrap;
       margin-top: 20px;
     }
 
@@ -63,11 +65,41 @@
       font-size: 0.9rem;
     }
 
-    .character img {
+    .character div {
       width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      border: 2px solid #ddd;
+      height: 120px;
+      position: relative;
+    }
+
+    .character img {
+      position: absolute;
+      width: 80px;
+    }
+
+    .head {
+      top: 0;
+      left: 0;
+    }
+
+    .body {
+      bottom: 0;
+      left: 0;
+    }
+
+    @keyframes flyToCharacter {
+      0% {
+        transform: translate(0, 0);
+      }
+      100% {
+        transform: translate(var(--x), var(--y));
+      }
+    }
+
+    .slice {
+      position: absolute;
+      top: 150px;
+      left: 150px;
+      transform-origin: 0 0;
     }
   </style>
 </head>
@@ -90,11 +122,56 @@
 
     // Anime Characters Data
     const characters = [
-      { name: "Naruto", img: "https://via.placeholder.com/80?text=Naruto" },
-      { name: "Luffy", img: "https://via.placeholder.com/80?text=Luffy" },
-      { name: "Goku", img: "https://via.placeholder.com/80?text=Goku" },
-      { name: "Sakura", img: "https://via.placeholder.com/80?text=Sakura" },
-      { name: "Ichigo", img: "https://via.placeholder.com/80?text=Ichigo" },
+      {
+        name: "Naruto",
+        head: "https://via.placeholder.com/80?text=Naruto+Head",
+        body: "https://via.placeholder.com/80x40?text=Naruto+Body",
+      },
+      {
+        name: "Luffy",
+        head: "https://via.placeholder.com/80?text=Luffy+Head",
+        body: "https://via.placeholder.com/80x40?text=Luffy+Body",
+      },
+      {
+        name: "Goku",
+        head: "https://via.placeholder.com/80?text=Goku+Head",
+        body: "https://via.placeholder.com/80x40?text=Goku+Body",
+      },
+      {
+        name: "Sakura",
+        head: "https://via.placeholder.com/80?text=Sakura+Head",
+        body: "https://via.placeholder.com/80x40?text=Sakura+Body",
+      },
+      {
+        name: "Ichigo",
+        head: "https://via.placeholder.com/80?text=Ichigo+Head",
+        body: "https://via.placeholder.com/80x40?text=Ichigo+Body",
+      },
+      {
+        name: "Eren",
+        head: "https://via.placeholder.com/80?text=Eren+Head",
+        body: "https://via.placeholder.com/80x40?text=Eren+Body",
+      },
+      {
+        name: "Levi",
+        head: "https://via.placeholder.com/80?text=Levi+Head",
+        body: "https://via.placeholder.com/80x40?text=Levi+Body",
+      },
+      {
+        name: "Tanjiro",
+        head: "https://via.placeholder.com/80?text=Tanjiro+Head",
+        body: "https://via.placeholder.com/80x40?text=Tanjiro+Body",
+      },
+      {
+        name: "Mikasa",
+        head: "https://via.placeholder.com/80?text=Mikasa+Head",
+        body: "https://via.placeholder.com/80x40?text=Mikasa+Body",
+      },
+      {
+        name: "Gojo",
+        head: "https://via.placeholder.com/80?text=Gojo+Head",
+        body: "https://via.placeholder.com/80x40?text=Gojo+Body",
+      },
     ];
 
     // Generate Unique Colors
@@ -106,7 +183,7 @@
       return colors;
     }
 
-    // Draw Pizza and Share with Characters
+    // Draw Pizza and Serve with Animation
     function sharePizza() {
       let slices = parseInt(document.getElementById('pizzaSlices').value);
       if (isNaN(slices) || slices < 1) slices = 1;
@@ -117,35 +194,20 @@
 
       // Clear Canvas and Draw Pizza
       pizzaCtx.clearRect(0, 0, pizzaCanvas.width, pizzaCanvas.height);
+      pizzaCtx.strokeStyle = "black";
+
+      // Add Knife Animation and Pizza Slices
       for (let i = 0; i < slices; i++) {
-        pizzaCtx.beginPath();
-        pizzaCtx.moveTo(150, 150);
-        pizzaCtx.arc(150, 150, 150, i * angle, (i + 1) * angle);
-        pizzaCtx.fillStyle = colors[i];
-        pizzaCtx.fill();
-        pizzaCtx.stroke();
+        setTimeout(() => {
+          pizzaCtx.beginPath();
+          pizzaCtx.moveTo(150, 150);
+          pizzaCtx.arc(150, 150, 150, i * angle, (i + 1) * angle);
+          pizzaCtx.fillStyle = colors[i];
+          pizzaCtx.fill();
+          pizzaCtx.stroke();
+        }, i * 300);
       }
-
-      // Share Pizza with Characters
-      charactersContainer.innerHTML = "";
-      const selectedCharacters = characters.slice(0, slices);
-      selectedCharacters.forEach((character, index) => {
-        const characterDiv = document.createElement("div");
-        characterDiv.classList.add("character");
-        characterDiv.innerHTML = `
-          <img src="${character.img}" alt="${character.name}">
-          <p>${character.name}</p>
-          <p>Slice: ${index + 1}</p>
-        `;
-        charactersContainer.appendChild(characterDiv);
-      });
-
-      // Show Result
-      document.getElementById("pizzaResult").innerText = `${slices} slices shared with ${slices} characters!`;
     }
-
-    // Initialize Default Pizza
-    sharePizza();
   </script>
 </body>
 </html>
