@@ -62,28 +62,14 @@
 
     .character {
       text-align: center;
-      font-size: 0.9rem;
-    }
-
-    .character div {
-      width: 80px;
-      height: 120px;
-      position: relative;
+      font-size: 1rem;
+      margin-bottom: 20px;
     }
 
     .character img {
-      position: absolute;
       width: 80px;
-    }
-
-    .head {
-      top: 0;
-      left: 0;
-    }
-
-    .body {
-      bottom: 0;
-      left: 0;
+      height: auto;
+      margin-bottom: 10px;
     }
 
     @keyframes flyToCharacter {
@@ -109,7 +95,7 @@
     <canvas id="pizzaCanvas" width="300" height="300"></canvas>
     <br>
     <label for="pizzaSlices">Enter Number of Slices (1-10):</label>
-    <input type="number" id="pizzaSlices" value="8" min="1" max="10">
+    <input type="number" id="pizzaSlices" value="5" min="1" max="10">
     <button onclick="sharePizza()">Share Pizza</button>
     <div id="pizzaResult"></div>
     <div class="characters" id="charactersContainer"></div>
@@ -120,94 +106,78 @@
     const pizzaCtx = pizzaCanvas.getContext('2d');
     const charactersContainer = document.getElementById('charactersContainer');
 
-    // Anime Characters Data
+    // Predefined Flaticon Character URLs
     const characters = [
-      {
-        name: "Naruto",
-        head: "https://via.placeholder.com/80?text=Naruto+Head",
-        body: "https://via.placeholder.com/80x40?text=Naruto+Body",
-      },
-      {
-        name: "Luffy",
-        head: "https://via.placeholder.com/80?text=Luffy+Head",
-        body: "https://via.placeholder.com/80x40?text=Luffy+Body",
-      },
-      {
-        name: "Goku",
-        head: "https://via.placeholder.com/80?text=Goku+Head",
-        body: "https://via.placeholder.com/80x40?text=Goku+Body",
-      },
-      {
-        name: "Sakura",
-        head: "https://via.placeholder.com/80?text=Sakura+Head",
-        body: "https://via.placeholder.com/80x40?text=Sakura+Body",
-      },
-      {
-        name: "Ichigo",
-        head: "https://via.placeholder.com/80?text=Ichigo+Head",
-        body: "https://via.placeholder.com/80x40?text=Ichigo+Body",
-      },
-      {
-        name: "Eren",
-        head: "https://via.placeholder.com/80?text=Eren+Head",
-        body: "https://via.placeholder.com/80x40?text=Eren+Body",
-      },
-      {
-        name: "Levi",
-        head: "https://via.placeholder.com/80?text=Levi+Head",
-        body: "https://via.placeholder.com/80x40?text=Levi+Body",
-      },
-      {
-        name: "Tanjiro",
-        head: "https://via.placeholder.com/80?text=Tanjiro+Head",
-        body: "https://via.placeholder.com/80x40?text=Tanjiro+Body",
-      },
-      {
-        name: "Mikasa",
-        head: "https://via.placeholder.com/80?text=Mikasa+Head",
-        body: "https://via.placeholder.com/80x40?text=Mikasa+Body",
-      },
-      {
-        name: "Gojo",
-        head: "https://via.placeholder.com/80?text=Gojo+Head",
-        body: "https://via.placeholder.com/80x40?text=Gojo+Body",
-      },
+      "https://cdn-icons-png.flaticon.com/512/1864/1864510.png", // Character 1
+      "https://cdn-icons-png.flaticon.com/512/1864/1864522.png", // Character 2
+      "https://cdn-icons-png.flaticon.com/512/1864/1864527.png", // Character 3
+      "https://cdn-icons-png.flaticon.com/512/1864/1864536.png", // Character 4
+      "https://cdn-icons-png.flaticon.com/512/1864/1864544.png", // Character 5
+      "https://cdn-icons-png.flaticon.com/512/1864/1864553.png", // Character 6
+      "https://cdn-icons-png.flaticon.com/512/1864/1864573.png", // Character 7
+      "https://cdn-icons-png.flaticon.com/512/1864/1864583.png", // Character 8
+      "https://cdn-icons-png.flaticon.com/512/1864/1864592.png", // Character 9
+      "https://cdn-icons-png.flaticon.com/512/1864/1864605.png"  // Character 10
     ];
 
-    // Generate Unique Colors
-    function generateColors(count) {
-      const colors = [];
-      for (let i = 0; i < count; i++) {
-        colors.push(`hsl(${(360 / count) * i}, 70%, 70%)`);
+    function drawPizza(slices) {
+      const colors = ['#ff6f61', '#ffa041', '#ffdd41', '#9ded41', '#41edc4', '#4187ed', '#9141ed', '#ed41d9', '#ed416e', '#5c5c5c'];
+      pizzaCtx.clearRect(0, 0, pizzaCanvas.width, pizzaCanvas.height);
+      const centerX = pizzaCanvas.width / 2;
+      const centerY = pizzaCanvas.height / 2;
+      const radius = 100;
+      const sliceAngle = (2 * Math.PI) / slices;
+
+      for (let i = 0; i < slices; i++) {
+        pizzaCtx.beginPath();
+        pizzaCtx.moveTo(centerX, centerY);
+        pizzaCtx.arc(centerX, centerY, radius, i * sliceAngle, (i + 1) * sliceAngle);
+        pizzaCtx.closePath();
+        pizzaCtx.fillStyle = colors[i % colors.length];
+        pizzaCtx.fill();
+        pizzaCtx.stroke();
       }
-      return colors;
     }
 
-    // Draw Pizza and Serve with Animation
     function sharePizza() {
-      let slices = parseInt(document.getElementById('pizzaSlices').value);
+      const slicesInput = document.getElementById('pizzaSlices');
+      let slices = parseInt(slicesInput.value);
+
+      // Validate slices
       if (isNaN(slices) || slices < 1) slices = 1;
       if (slices > 10) slices = 10;
+      slicesInput.value = slices;
 
-      const colors = generateColors(slices);
-      const angle = (2 * Math.PI) / slices;
+      drawPizza(slices);
 
-      // Clear Canvas and Draw Pizza
-      pizzaCtx.clearRect(0, 0, pizzaCanvas.width, pizzaCanvas.height);
-      pizzaCtx.strokeStyle = "black";
+      charactersContainer.innerHTML = '';
 
-      // Add Knife Animation and Pizza Slices
+      // Display characters dynamically
       for (let i = 0; i < slices; i++) {
-        setTimeout(() => {
-          pizzaCtx.beginPath();
-          pizzaCtx.moveTo(150, 150);
-          pizzaCtx.arc(150, 150, 150, i * angle, (i + 1) * angle);
-          pizzaCtx.fillStyle = colors[i];
-          pizzaCtx.fill();
-          pizzaCtx.stroke();
-        }, i * 300);
+        const charDiv = document.createElement('div');
+        charDiv.className = 'character';
+        charDiv.innerHTML = `<img src="${characters[i]}" alt="Character ${i + 1}">
+                             <p>Character ${i + 1}</p>`;
+        charactersContainer.appendChild(charDiv);
+
+        // Animate pizza slice flying
+        const slice = document.createElement('div');
+        slice.className = 'slice';
+        slice.style.width = '20px';
+        slice.style.height = '20px';
+        slice.style.backgroundColor = '#ff6f61';
+        slice.style.borderRadius = '50%';
+        slice.style.animation = `flyToCharacter 2s ease forwards`;
+        slice.style.setProperty('--x', `${(i + 1) * 30}px`);
+        slice.style.setProperty('--y', '100px');
+        pizzaCanvas.parentElement.appendChild(slice);
+
+        setTimeout(() => slice.remove(), 2000);
       }
     }
+
+    // Draw initial pizza
+    drawPizza(5);
   </script>
 </body>
 </html>
