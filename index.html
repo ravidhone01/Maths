@@ -72,25 +72,6 @@
       transform-origin: 0 0;
     }
 
-    /* Placeholder Styles */
-    .receiversContainer {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      margin-top: 20px;
-    }
-
-    .receiver {
-      width: 80px;
-      height: 80px;
-      background: #ffd1dc;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-    }
-
     input {
       padding: 10px;
       border-radius: 10px;
@@ -125,45 +106,31 @@
     <label for="pizzaSlices">Enter Number of Slices (1-10):</label>
     <input type="number" id="pizzaSlices" value="5" min="1" max="10">
     <button onclick="sharePizza()">Share Pizza</button>
-    <div class="receiversContainer" id="receiversContainer"></div>
   </div>
 
   <script>
     const pizza = document.getElementById('pizza');
-    const receiversContainer = document.getElementById('receiversContainer');
 
+    // Function to share pizza
     function sharePizza() {
-      const slicesInput = document.getElementById('pizzaSlices');
-      let slices = parseInt(slicesInput.value);
+      const numSlices = Math.min(10, Math.max(1, Math.round(Number(document.getElementById('pizzaSlices').value))));
 
-      // Validate slices
-      if (isNaN(slices) || slices < 1) slices = 1;
-      if (slices > 10) slices = 10;
-      slicesInput.value = slices;
-
-      // Draw pizza slices
+      // Clear previous slices
       pizza.innerHTML = '';
-      const sliceAngle = 360 / slices;
-      for (let i = 0; i < slices; i++) {
-        const slice = document.createElement('div');
-        slice.className = 'slice';
-        slice.style.background = `hsl(${(i * 36) % 360}, 70%, 50%)`;
-        slice.style.transform = `rotate(${i * sliceAngle}deg)`;
-        pizza.appendChild(slice);
-      }
 
-      // Assign slices to people
-      receiversContainer.innerHTML = '';
-      for (let i = 0; i < slices; i++) {
-        const receiver = document.createElement('div');
-        receiver.className = 'receiver';
-        receiversContainer.appendChild(receiver);
+      // Create slices
+      for (let i = 0; i < numSlices; i++) {
+        const slice = document.createElement('div');
+        slice.classList.add('slice');
+        slice.style.backgroundColor = `hsl(${(i * 360) / numSlices}, 70%, 60%)`; // Unique color for each slice
+        slice.style.transform = `rotate(${(i * 360) / numSlices}deg)`;
+        slice.style.clipPath = `polygon(50% 50%, 100% 0, 100% ${100 / numSlices}%)`; // Dynamically adjusts slice size
+        pizza.appendChild(slice);
       }
     }
 
-    // Draw initial pizza
+    // Initial setup
     sharePizza();
   </script>
 </body>
 </html>
-
