@@ -3,39 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pizza Sharing Game</title>
+  <title>Dynamic Pizza Sharing Game</title>
   <style>
+    /* Global Styles */
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Arial', sans-serif;
       margin: 0;
       padding: 0;
-      background-color: #f5f5f5;
+      background: linear-gradient(120deg, #ffecd2, #fcb69f);
+      background-size: 200% 200%;
+      animation: gradientAnimation 10s ease infinite;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+    }
+
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     header {
       background: #ff6f61;
       color: white;
-      text-align: center;
       padding: 20px;
-      font-size: 1.5rem;
+      font-size: 1.8rem;
+      text-align: center;
+      width: 100%;
+      border-radius: 0 0 20px 20px;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
     }
 
     #gameContainer {
       text-align: center;
-      margin: 20px auto;
-      max-width: 600px;
+      margin: 20px;
+      width: 90%;
+      max-width: 500px;
+      padding: 20px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
     }
 
     canvas {
-      border: 2px solid #ddd;
-      margin: 20px auto;
-      display: block;
+      border: 5px solid #ff6f61;
+      border-radius: 50%;
+      margin: 20px 0;
+      width: 100%;
+      max-width: 300px;
+      height: auto;
     }
 
     input {
-      width: 50px;
-      padding: 5px;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
       font-size: 1rem;
+      margin: 10px;
+      width: 50px;
     }
 
     button {
@@ -44,88 +72,75 @@
       background: #ff6f61;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 20px;
       cursor: pointer;
+      transition: all 0.3s ease;
     }
 
     button:hover {
       background: #ff856f;
+      transform: scale(1.1);
     }
 
-    .characters {
+    .slicesContainer {
       display: flex;
       justify-content: center;
       gap: 20px;
-      flex-wrap: wrap;
       margin-top: 20px;
     }
 
-    .character {
-      text-align: center;
-      font-size: 1rem;
-      margin-bottom: 20px;
-    }
-
-    .character img {
-      width: 80px;
-      height: auto;
-      margin-bottom: 10px;
-    }
-
-    @keyframes flyToCharacter {
-      0% {
-        transform: translate(0, 0);
-      }
-      100% {
-        transform: translate(var(--x), var(--y));
-      }
-    }
-
-    .slice {
+    .sliceFly {
       position: absolute;
-      top: 150px;
-      left: 150px;
-      transform-origin: 0 0;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #ff6f61;
+      animation: flyAnimation 1.5s ease forwards;
+    }
+
+    @keyframes flyAnimation {
+      0% { opacity: 1; transform: translate(0, 0); }
+      100% { opacity: 0; transform: translate(var(--x), var(--y)); }
+    }
+
+    /* Placeholder people receiving pizza */
+    .receiver {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(120deg, #ffe2d8, #ff856f);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.2rem;
+      font-weight: bold;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
     }
   </style>
 </head>
 <body>
-  <header>🍕 Pizza Sharing Game</header>
+  <header>🍕 Dynamic Pizza Sharing Game</header>
   <div id="gameContainer">
     <canvas id="pizzaCanvas" width="300" height="300"></canvas>
     <br>
     <label for="pizzaSlices">Enter Number of Slices (1-10):</label>
     <input type="number" id="pizzaSlices" value="5" min="1" max="10">
     <button onclick="sharePizza()">Share Pizza</button>
-    <div id="pizzaResult"></div>
-    <div class="characters" id="charactersContainer"></div>
+    <div class="slicesContainer" id="receiversContainer"></div>
   </div>
 
   <script>
     const pizzaCanvas = document.getElementById('pizzaCanvas');
     const pizzaCtx = pizzaCanvas.getContext('2d');
-    const charactersContainer = document.getElementById('charactersContainer');
-
-    // Predefined Flaticon Character URLs
-    const characters = [
-      "https://cdn-icons-png.flaticon.com/512/1864/1864510.png", // Character 1
-      "https://cdn-icons-png.flaticon.com/512/1864/1864522.png", // Character 2
-      "https://cdn-icons-png.flaticon.com/512/1864/1864527.png", // Character 3
-      "https://cdn-icons-png.flaticon.com/512/1864/1864536.png", // Character 4
-      "https://cdn-icons-png.flaticon.com/512/1864/1864544.png", // Character 5
-      "https://cdn-icons-png.flaticon.com/512/1864/1864553.png", // Character 6
-      "https://cdn-icons-png.flaticon.com/512/1864/1864573.png", // Character 7
-      "https://cdn-icons-png.flaticon.com/512/1864/1864583.png", // Character 8
-      "https://cdn-icons-png.flaticon.com/512/1864/1864592.png", // Character 9
-      "https://cdn-icons-png.flaticon.com/512/1864/1864605.png"  // Character 10
-    ];
+    const receiversContainer = document.getElementById('receiversContainer');
 
     function drawPizza(slices) {
       const colors = ['#ff6f61', '#ffa041', '#ffdd41', '#9ded41', '#41edc4', '#4187ed', '#9141ed', '#ed41d9', '#ed416e', '#5c5c5c'];
       pizzaCtx.clearRect(0, 0, pizzaCanvas.width, pizzaCanvas.height);
       const centerX = pizzaCanvas.width / 2;
       const centerY = pizzaCanvas.height / 2;
-      const radius = 100;
+      const radius = 140;
       const sliceAngle = (2 * Math.PI) / slices;
 
       for (let i = 0; i < slices; i++) {
@@ -135,6 +150,8 @@
         pizzaCtx.closePath();
         pizzaCtx.fillStyle = colors[i % colors.length];
         pizzaCtx.fill();
+        pizzaCtx.strokeStyle = '#fff';
+        pizzaCtx.lineWidth = 2;
         pizzaCtx.stroke();
       }
     }
@@ -150,33 +167,24 @@
 
       drawPizza(slices);
 
-      charactersContainer.innerHTML = '';
+      receiversContainer.innerHTML = '';
 
-      // Display characters dynamically
       for (let i = 0; i < slices; i++) {
-        const charDiv = document.createElement('div');
-        charDiv.className = 'character';
-        charDiv.innerHTML = `<img src="${characters[i]}" alt="Character ${i + 1}">
-                             <p>Character ${i + 1}</p>`;
-        charactersContainer.appendChild(charDiv);
+        const receiver = document.createElement('div');
+        receiver.className = 'receiver';
+        receiver.textContent = i + 1;
+        receiversContainer.appendChild(receiver);
 
-        // Animate pizza slice flying
         const slice = document.createElement('div');
-        slice.className = 'slice';
-        slice.style.width = '20px';
-        slice.style.height = '20px';
-        slice.style.backgroundColor = '#ff6f61';
-        slice.style.borderRadius = '50%';
-        slice.style.animation = `flyToCharacter 2s ease forwards`;
-        slice.style.setProperty('--x', `${(i + 1) * 30}px`);
-        slice.style.setProperty('--y', '100px');
-        pizzaCanvas.parentElement.appendChild(slice);
+        slice.className = 'sliceFly';
+        slice.style.setProperty('--x', `${(i - 5) * 50}px`);
+        slice.style.setProperty('--y', `${150}px`);
+        document.body.appendChild(slice);
 
-        setTimeout(() => slice.remove(), 2000);
+        setTimeout(() => slice.remove(), 1500);
       }
     }
 
-    // Draw initial pizza
     drawPizza(5);
   </script>
 </body>
