@@ -2,220 +2,234 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fraction Pizza Challenge</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Fraction Challenge</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f4f4f4;
-            font-family: 'Arial', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
         }
-        .fraction-container {
+        .game-container {
             background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             padding: 20px;
-            margin-top: 20px;
+            width: 100%;
+            max-width: 600px;
         }
-        .pizza-slice {
-            transition: all 0.3s ease;
+        .challenge-area {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .target-container, .stack-container {
+            width: 45%;
+            height: 300px;
+            border: 2px solid #007bff;
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .target-fraction {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-color: #007bff;
+            opacity: 0.5;
+        }
+        .stack-contents {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+        .stacked-item {
+            width: 100%;
+            background-color: #28a745;
+            margin-bottom: 2px;
+            transition: height 0.3s ease;
+        }
+        .fraction-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        .fraction-option {
+            display: inline-block;
+            padding: 10px;
+            margin: 5px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
             cursor: pointer;
+            transition: all 0.2s;
         }
-        .pizza-slice:hover {
+        .fraction-option:hover {
+            background-color: #e9ecef;
             transform: scale(1.05);
-            opacity: 0.8;
         }
-        .selected {
-            fill: #28a745 !important;
-        }
-        #challengeQuestion {
-            font-size: 24px;
-            font-weight: bold;
-            color: #007bff;
-        }
-        .celebration-message {
-            font-size: 36px;
-            font-weight: bold;
-            color: #28a745;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        .feedback-area {
+            text-align: center;
+            margin: 15px 0;
+            height: 30px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="text-center my-4">
-            <h1 class="display-6">Fraction Pizza Challenge</h1>
-            <p id="challengeQuestion" class="lead">Select the Fraction!</p>
-        </div>
-        
-        <div class="row">
-            <div class="col-md-8 offset-md-2">
-                <div class="fraction-container text-center">
-                    <div id="pizzaBoard" class="mb-3">
-                        <!-- Pizza SVG will be dynamically generated here -->
-                    </div>
-                    
-                    <div class="mt-4">
-                        <h4 id="fractionDisplay">Select Slices to Learn!</h4>
-                        <div class="btn-group mt-2" role="group">
-                            <button id="resetBtn" class="btn btn-outline-secondary">Reset</button>
-                            <button id="checkBtn" class="btn btn-primary">Check Fraction</button>
-                            <button id="nextBtn" class="btn btn-success">Next Challenge</button>
-                        </div>
-                    </div>
-                    <div id="resultMessage" class="mt-3"></div>
+        <div class="game-container">
+            <h2 class="text-center mb-4" id="challengeTitle">Fraction Challenge</h2>
+            
+            <div class="challenge-area">
+                <div class="target-container">
+                    <div class="target-fraction" id="targetFraction"></div>
+                    <div class="text-center mt-2">Target: <span id="targetLabel"></span></div>
                 </div>
+                <div class="stack-container">
+                    <div class="stack-contents" id="stackContents"></div>
+                    <div class="text-center mt-2">Your Stack</div>
+                </div>
+            </div>
+
+            <div class="feedback-area">
+                <div id="successMessage" class="text-success" style="display:none;">
+                    🎉 Congratulations! You solved the fraction challenge!
+                </div>
+                <div id="failureMessage" class="text-danger" style="display:none;">
+                    ❌ Oops! You've exceeded the target.
+                </div>
+            </div>
+
+            <div class="fraction-options" id="fractionOptions"></div>
+
+            <div class="text-center mt-3">
+                <button class="btn btn-primary me-2" id="resetButton">Reset</button>
+                <button class="btn btn-success" id="nextButton">Next Challenge</button>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        class FractionPizzaChallenge {
-            constructor() {
-                this.TOTAL_SLICES = 10;
-                this.selectedSlices = new Set();
-                this.currentChallenge = null;
-                this.challenges = this.generateChallenges();
-                this.initializeEventListeners();
+        const challenges = [
+            {
+                title: "Rod Fraction Challenge",
+                target: 2/3,
+                targetLabel: "2/3",
+                fractions: [
+                    { value: 0.1, label: "1/10" },
+                    { value: 0.2, label: "1/5" },
+                    { value: 0.25, label: "1/4" },
+                    { value: 0.33, label: "1/3" },
+                    { value: 0.5, label: "1/2" }
+                ]
+            },
+            {
+                title: "Pizza Slice Challenge",
+                target: 3/4,
+                targetLabel: "3/4",
+                fractions: [
+                    { value: 0.125, label: "1/8" },
+                    { value: 0.25, label: "1/4" },
+                    { value: 0.5, label: "1/2" },
+                    { value: 0.2, label: "1/5" }
+                ]
+            },
+            {
+                title: "Rectangle Fraction Challenge",
+                target: 1/2,
+                targetLabel: "1/2",
+                fractions: [
+                    { value: 0.1, label: "1/10" },
+                    { value: 0.2, label: "1/5" },
+                    { value: 0.25, label: "1/4" },
+                    { value: 0.33, label: "1/3" }
+                ]
+            }
+        ];
+
+        let currentChallengeIndex = 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const challengeTitle = document.getElementById('challengeTitle');
+            const targetFraction = document.getElementById('targetFraction');
+            const targetLabel = document.getElementById('targetLabel');
+            const fractionOptions = document.getElementById('fractionOptions');
+            const stackContents = document.getElementById('stackContents');
+            const successMessage = document.getElementById('successMessage');
+            const failureMessage = document.getElementById('failureMessage');
+            const resetButton = document.getElementById('resetButton');
+            const nextButton = document.getElementById('nextButton');
+
+            function initializeChallenge(challenge) {
+                // Reset UI elements
+                challengeTitle.textContent = challenge.title;
+                targetFraction.style.height = `${challenge.target * 100}%`;
+                targetLabel.textContent = challenge.targetLabel;
+                stackContents.innerHTML = '';
+                successMessage.style.display = 'none';
+                failureMessage.style.display = 'none';
+
+                // Populate fraction options
+                fractionOptions.innerHTML = challenge.fractions.map(fraction => `
+                    <div class="fraction-option" data-value="${fraction.value}">
+                        ${fraction.label}
+                    </div>
+                `).join('');
             }
 
-            generateChallenges() {
-                return Array.from({length: 10}, (_, i) => ({
-                    target: `${i + 1}/${this.TOTAL_SLICES}`,
-                    expectedSlices: i + 1
-                }));
+            function calculateTotal() {
+                return Array.from(stackContents.children)
+                    .reduce((sum, item) => sum + parseFloat(item.dataset.value), 0);
             }
 
-            createPizzaSVG() {
-                const pizzaBoard = document.getElementById('pizzaBoard');
-                pizzaBoard.innerHTML = '';
+            fractionOptions.addEventListener('click', (event) => {
+                const fractionOption = event.target.closest('.fraction-option');
+                if (fractionOption) {
+                    const value = parseFloat(fractionOption.dataset.value);
+                    const currentTotal = calculateTotal();
+                    const newTotal = currentTotal + value;
 
-                const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                svg.setAttribute('viewBox', '0 0 200 200');
-                svg.setAttribute('width', '100%');
-                svg.setAttribute('height', '300px');
+                    // Create stacked item
+                    const stackedItem = document.createElement('div');
+                    stackedItem.classList.add('stacked-item');
+                    stackedItem.style.height = `${value * 300}px`;
+                    stackedItem.dataset.value = value;
+                    stackContents.appendChild(stackedItem);
 
-                const centerX = 100, centerY = 100, radius = 90;
-                
-                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                circle.setAttribute('cx', centerX);
-                circle.setAttribute('cy', centerY);
-                circle.setAttribute('r', radius);
-                circle.setAttribute('fill', '#FFA500');
-                svg.appendChild(circle);
-
-                for (let i = 0; i < this.TOTAL_SLICES; i++) {
-                    const slice = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                    const angle = (i * 360 / this.TOTAL_SLICES) * (Math.PI / 180);
-                    const nextAngle = ((i + 1) * 360 / this.TOTAL_SLICES) * (Math.PI / 180);
-
-                    const x1 = centerX + radius * Math.cos(angle);
-                    const y1 = centerY + radius * Math.sin(angle);
-                    const x2 = centerX + radius * Math.cos(nextAngle);
-                    const y2 = centerY + radius * Math.sin(nextAngle);
-
-                    const pathData = `M${centerX},${centerY} L${x1},${y1} A${radius},${radius} 0 0,1 ${x2},${y2} Z`;
-                    
-                    slice.setAttribute('d', pathData);
-                    slice.setAttribute('fill', '#FF6347');
-                    slice.setAttribute('stroke', 'white');
-                    slice.setAttribute('stroke-width', '2');
-                    slice.setAttribute('data-slice-id', i);
-                    slice.classList.add('pizza-slice');
-                    
-                    svg.appendChild(slice);
+                    // Check challenge status
+                    const currentChallenge = challenges[currentChallengeIndex];
+                    if (Math.abs(newTotal - currentChallenge.target) < 0.01) {
+                        successMessage.style.display = 'block';
+                        failureMessage.style.display = 'none';
+                    } else if (newTotal > currentChallenge.target) {
+                        failureMessage.style.display = 'block';
+                        successMessage.style.display = 'none';
+                    }
                 }
+            });
 
-                pizzaBoard.appendChild(svg);
-                this.addSliceListeners();
-            }
+            resetButton.addEventListener('click', () => {
+                initializeChallenge(challenges[currentChallengeIndex]);
+            });
 
-            addSliceListeners() {
-                const slices = document.querySelectorAll('.pizza-slice');
-                slices.forEach(slice => {
-                    slice.addEventListener('click', (event) => this.toggleSlice(event));
-                });
+            nextButton.addEventListener('click', () => {
+                // Move to next challenge or loop back to first
+                currentChallengeIndex = (currentChallengeIndex + 1) % challenges.length;
+                initializeChallenge(challenges[currentChallengeIndex]);
+            });
 
-                document.getElementById('resetBtn').addEventListener('click', () => this.resetPizza());
-                document.getElementById('checkBtn').addEventListener('click', () => this.checkFraction());
-                document.getElementById('nextBtn').addEventListener('click', () => this.nextChallenge());
-            }
-
-            toggleSlice(event) {
-                const slice = event.target;
-                const sliceId = slice.getAttribute('data-slice-id');
-
-                if (this.selectedSlices.has(sliceId)) {
-                    this.selectedSlices.delete(sliceId);
-                    slice.classList.remove('selected');
-                } else {
-                    this.selectedSlices.add(sliceId);
-                    slice.classList.add('selected');
-                }
-
-                this.updateFractionDisplay();
-            }
-
-            updateFractionDisplay() {
-                const fractionDisplay = document.getElementById('fractionDisplay');
-                const selectedCount = this.selectedSlices.size;
-                const fraction = `${selectedCount}/${this.TOTAL_SLICES}`;
-                const decimalFraction = (selectedCount / this.TOTAL_SLICES).toFixed(2);
-                
-                fractionDisplay.textContent = `Selected: ${fraction} (${decimalFraction})`;
-            }
-
-            startChallenge() {
-                this.resetPizza();
-                this.currentChallenge = this.challenges[Math.floor(Math.random() * this.challenges.length)];
-                document.getElementById('challengeQuestion').textContent = `Select ${this.currentChallenge.target} of the pizza!`;
-                document.getElementById('resultMessage').textContent = '';
-            }
-
-            checkFraction() {
-                const selectedCount = this.selectedSlices.size;
-                const resultMessage = document.getElementById('resultMessage');
-
-                if (selectedCount === this.currentChallenge.expectedSlices) {
-                    const celebrationMessages = [
-                        "Awesome! 🎉", 
-                        "Fabulous! 🌟", 
-                        "Perfect! 👏", 
-                        "Brilliant! 🏆", 
-                        "Excellent! 🍕"
-                    ];
-
-                    resultMessage.innerHTML = `<span class="celebration-message">${
-                        celebrationMessages[Math.floor(Math.random() * celebrationMessages.length)]
-                    }</span>`;
-                } else {
-                    resultMessage.innerHTML = `<span class="text-danger">Oops! Try again. You selected ${selectedCount}/${this.TOTAL_SLICES}</span>`;
-                }
-            }
-
-            resetPizza() {
-                const slices = document.querySelectorAll('.pizza-slice');
-                slices.forEach(slice => {
-                    slice.classList.remove('selected');
-                });
-                this.selectedSlices.clear();
-                this.updateFractionDisplay();
-            }
-
-            nextChallenge() {
-                this.startChallenge();
-            }
-
-            initializeEventListeners() {
-                document.addEventListener('DOMContentLoaded', () => {
-                    this.createPizzaSVG();
-                    this.startChallenge();
-                });
-            }
-        }
-
-        const fractionPizzaChallenge = new FractionPizzaChallenge();
+            // Initialize first challenge
+            initializeChallenge(challenges[currentChallengeIndex]);
+        });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
