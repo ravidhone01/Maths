@@ -7,160 +7,138 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f9f9ff;
-            font-family: 'Comic Sans MS', cursive, sans-serif;
-        }
-        .question-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            min-height: 100vh;
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+            color: #212529;
             padding: 20px;
         }
-        .pizza-container {
-            display: grid;
-            grid-template-columns: repeat(4, auto);
-            justify-content: center;
-            gap: 20px;
-            margin: 20px 0;
+        .container {
+            max-width: 600px;
+            margin: auto;
+            text-align: center;
         }
-        .pizza-slice {
-            width: 80px;
-            height: 80px;
-            background: conic-gradient(#ffc107 0% 50%, #f8d54d 50% 100%);
-            border-radius: 50%;
+        .pizza {
             position: relative;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-        .pizza-slice::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 20%;
-            height: 20%;
-            background: #fff;
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            background-color: #f5a623;
             border-radius: 50%;
         }
-        .pizza-slice.selected {
-            background: conic-gradient(#28a745 0% 50%, #4caf50 50% 100%);
-            transform: scale(1.1);
+        .slice {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            clip-path: polygon(50% 50%, 100% 0, 100% 100%);
+            background-color: #ffcc00;
+            border: 1px solid #e5e5e5;
+            transform-origin: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
-        .result-message {
-            display: none;
-            font-size: 1.5rem;
-            color: #28a745;
-            margin: 20px;
+        .slice.selected {
+            background-color: #28a745;
         }
         .controls {
+            margin-top: 20px;
+        }
+        #result {
+            display: none;
+            font-weight: bold;
             margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="container text-center question-container">
-        <h1 class="text-primary mb-4">🍕 Fraction Quiz for Kids 🍕</h1>
-        <h2 id="question-text" class="text-success">Select 1/4 of the Pizza!</h2>
-        <div id="pizza-container" class="pizza-container">
-            <!-- Pizza slices will be dynamically added here -->
+    <div class="container">
+        <h1>Fraction Quiz</h1>
+        <p id="question">Select 1/4 of the pizza</p>
+        <div class="pizza" id="pizza">
+            <!-- Slices will be added dynamically -->
         </div>
         <div class="controls">
-            <button id="check-answer" class="btn btn-primary">Check Answer</button>
-            <button id="next-question" class="btn btn-success" style="display:none;">Next Question</button>
+            <button id="check" class="btn btn-primary">Check Answer</button>
+            <button id="next" class="btn btn-success" style="display: none;">Next</button>
         </div>
-        <div id="result-message" class="result-message">🎉 Correct! Well done! 🎉</div>
+        <div id="result"></div>
         <div class="mt-4">
-            <button id="mute-toggle" class="btn btn-warning">🔊 Mute Sounds</button>
+            <button id="sound-toggle" class="btn btn-warning">🔊 Mute Sound</button>
         </div>
     </div>
 
-    <audio id="correct-sound">
-        <source src="https://www.soundjay.com/button/sounds/button-09.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="wrong-sound">
-        <source src="https://www.soundjay.com/button/sounds/button-10.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="correct-sound" src="https://www.soundjay.com/button/sounds/button-09.mp3"></audio>
+    <audio id="wrong-sound" src="https://www.soundjay.com/button/sounds/button-10.mp3"></audio>
 
     <script>
         const questions = [
-            { slices: 4, target: 1, text: "Select 1/4 of the Pizza!" },
-            { slices: 4, target: 2, text: "Select 2/4 of the Pizza!" },
-            { slices: 4, target: 3, text: "Select 3/4 of the Pizza!" },
-            { slices: 4, target: 4, text: "Select 4/4 of the Pizza!" },
-            { slices: 6, target: 2, text: "Select 2/6 of the Pizza!" },
-            { slices: 8, target: 4, text: "Select 4/8 of the Pizza!" },
-            { slices: 5, target: 3, text: "Select 3/5 of the Pizza!" },
-            { slices: 10, target: 7, text: "Select 7/10 of the Pizza!" },
-            { slices: 3, target: 1, text: "Select 1/3 of the Pizza!" },
-            { slices: 12, target: 6, text: "Select 6/12 of the Pizza!" }
+            { slices: 4, target: 1, text: "Select 1/4 of the pizza" },
+            { slices: 4, target: 2, text: "Select 2/4 of the pizza" },
+            { slices: 4, target: 3, text: "Select 3/4 of the pizza" },
+            { slices: 4, target: 4, text: "Select 4/4 of the pizza" }
         ];
 
         let currentQuestion = 0;
         let isMuted = false;
 
-        const pizzaContainer = document.getElementById("pizza-container");
-        const questionText = document.getElementById("question-text");
-        const checkAnswerButton = document.getElementById("check-answer");
-        const nextQuestionButton = document.getElementById("next-question");
-        const resultMessage = document.getElementById("result-message");
-        const muteToggle = document.getElementById("mute-toggle");
+        const pizza = document.getElementById("pizza");
+        const questionText = document.getElementById("question");
+        const checkButton = document.getElementById("check");
+        const nextButton = document.getElementById("next");
+        const result = document.getElementById("result");
+        const soundToggle = document.getElementById("sound-toggle");
         const correctSound = document.getElementById("correct-sound");
         const wrongSound = document.getElementById("wrong-sound");
 
         function renderQuestion() {
-            pizzaContainer.innerHTML = "";
             const question = questions[currentQuestion];
-
+            pizza.innerHTML = "";
             questionText.textContent = question.text;
+
             for (let i = 0; i < question.slices; i++) {
                 const slice = document.createElement("div");
-                slice.classList.add("pizza-slice");
-                slice.dataset.index = i;
+                slice.classList.add("slice");
+                slice.style.transform = `rotate(${(360 / question.slices) * i}deg)`;
                 slice.addEventListener("click", () => {
                     slice.classList.toggle("selected");
                 });
-                pizzaContainer.appendChild(slice);
+                pizza.appendChild(slice);
             }
         }
 
         function checkAnswer() {
-            const selectedSlices = document.querySelectorAll(".pizza-slice.selected");
+            const selectedSlices = document.querySelectorAll(".slice.selected");
             const question = questions[currentQuestion];
             const isCorrect = selectedSlices.length === question.target;
 
-            resultMessage.style.display = "block";
-            resultMessage.textContent = isCorrect
-                ? "🎉 Correct! Well done! 🎉"
-                : "❌ Try Again!";
+            result.style.display = "block";
+            result.textContent = isCorrect ? "🎉 Correct! Well done! 🎉" : "❌ Try again!";
+            result.style.color = isCorrect ? "#28a745" : "#dc3545";
 
             if (!isMuted) {
                 isCorrect ? correctSound.play() : wrongSound.play();
             }
 
             if (isCorrect) {
-                checkAnswerButton.style.display = "none";
-                nextQuestionButton.style.display = "inline-block";
+                checkButton.style.display = "none";
+                nextButton.style.display = "inline-block";
             }
         }
 
-        function loadNextQuestion() {
+        function nextQuestion() {
             currentQuestion = (currentQuestion + 1) % questions.length;
-            resultMessage.style.display = "none";
-            checkAnswerButton.style.display = "inline-block";
-            nextQuestionButton.style.display = "none";
+            result.style.display = "none";
+            checkButton.style.display = "inline-block";
+            nextButton.style.display = "none";
             renderQuestion();
         }
 
-        muteToggle.addEventListener("click", () => {
+        soundToggle.addEventListener("click", () => {
             isMuted = !isMuted;
-            muteToggle.textContent = isMuted ? "🔇 Unmute Sounds" : "🔊 Mute Sounds";
+            soundToggle.textContent = isMuted ? "🔇 Unmute Sound" : "🔊 Mute Sound";
         });
 
-        checkAnswerButton.addEventListener("click", checkAnswer);
-        nextQuestionButton.addEventListener("click", loadNextQuestion);
+        checkButton.addEventListener("click", checkAnswer);
+        nextButton.addEventListener("click", nextQuestion);
 
         renderQuestion();
     </script>
