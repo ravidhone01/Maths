@@ -2,234 +2,137 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Fraction Challenge</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraction Explorers: Kids Learning Adventure</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
+            background-color: #f0f4ff;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
         }
-        .game-container {
-            background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            padding: 20px;
-            width: 100%;
-            max-width: 600px;
-        }
-        .challenge-area {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        .target-container, .stack-container {
-            width: 45%;
-            height: 300px;
-            border: 2px solid #007bff;
-            position: relative;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .target-fraction {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            background-color: #007bff;
-            opacity: 0.5;
-        }
-        .stack-contents {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            display: flex;
-            flex-direction: column-reverse;
-        }
-        .stacked-item {
-            width: 100%;
-            background-color: #28a745;
-            margin-bottom: 2px;
-            transition: height 0.3s ease;
-        }
-        .fraction-options {
+        .fraction-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
             justify-content: center;
+            gap: 10px;
         }
-        .fraction-option {
-            display: inline-block;
+        .fraction-piece {
+            width: 80px;
+            height: 80px;
+            border: 3px solid #4a4a4a;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .fraction-piece.selected {
+            background-color: #4CAF50;
+            border-color: #45a049;
+        }
+        .superhero-message {
+            display: none;
+            color: #ff6f00;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+        }
+        .visual-tab {
+            cursor: pointer;
             padding: 10px;
             margin: 5px;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
             border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
         }
-        .fraction-option:hover {
-            background-color: #e9ecef;
-            transform: scale(1.05);
-        }
-        .feedback-area {
-            text-align: center;
-            margin: 15px 0;
-            height: 30px;
+        .visual-tab.active {
+            background-color: #007bff;
+            color: white;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="game-container">
-            <h2 class="text-center mb-4" id="challengeTitle">Fraction Challenge</h2>
-            
-            <div class="challenge-area">
-                <div class="target-container">
-                    <div class="target-fraction" id="targetFraction"></div>
-                    <div class="text-center mt-2">Target: <span id="targetLabel"></span></div>
-                </div>
-                <div class="stack-container">
-                    <div class="stack-contents" id="stackContents"></div>
-                    <div class="text-center mt-2">Your Stack</div>
+    <div class="container text-center mt-5">
+        <h1 class="display-4 text-primary mb-4">🍕 Fraction Explorers 🍕</h1>
+        
+        <!-- Visual Selection Tabs -->
+        <div class="row mb-4">
+            <div class="col visual-tab" data-type="pizza" role="button" aria-label="Pizza">🍕 Pizza</div>
+            <div class="col visual-tab" data-type="cake" role="button" aria-label="Cake">🍰 Cake</div>
+            <div class="col visual-tab" data-type="apple" role="button" aria-label="Apple">🍎 Apple</div>
+            <div class="col visual-tab" data-type="chocolate" role="button" aria-label="Chocolate">🍫 Chocolate</div>
+        </div>
+
+        <!-- Fraction Challenge Area -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 id="challenge-text" class="text-success">Select 3/8 of the Pizza!</h2>
+                <div id="fraction-container" class="fraction-container mt-3">
+                    <!-- Fraction pieces dynamically added here -->
                 </div>
             </div>
+        </div>
 
-            <div class="feedback-area">
-                <div id="successMessage" class="text-success" style="display:none;">
-                    🎉 Congratulations! You solved the fraction challenge!
-                </div>
-                <div id="failureMessage" class="text-danger" style="display:none;">
-                    ❌ Oops! You've exceeded the target.
-                </div>
+        <!-- Action Buttons -->
+        <div class="row mb-4">
+            <div class="col">
+                <button id="check-answer" class="btn btn-primary">Check Answer</button>
+                <button id="next-challenge" class="btn btn-success" style="display:none;">Next Challenge</button>
             </div>
+        </div>
 
-            <div class="fraction-options" id="fractionOptions"></div>
+        <!-- Superhero Message Area -->
+        <div id="superhero-message" class="superhero-message">
+            🦸‍♂️ Awesome job, Fraction Hero! 🌟
+        </div>
 
-            <div class="text-center mt-3">
-                <button class="btn btn-primary me-2" id="resetButton">Reset</button>
-                <button class="btn btn-success" id="nextButton">Next Challenge</button>
+        <!-- Sound Control -->
+        <div class="row mt-3">
+            <div class="col">
+                <button id="mute-toggle" class="btn btn-warning">🔊 Mute Sounds</button>
             </div>
         </div>
     </div>
 
     <script>
         const challenges = [
-            {
-                title: "Rod Fraction Challenge",
-                target: 2/3,
-                targetLabel: "2/3",
-                fractions: [
-                    { value: 0.1, label: "1/10" },
-                    { value: 0.2, label: "1/5" },
-                    { value: 0.25, label: "1/4" },
-                    { value: 0.33, label: "1/3" },
-                    { value: 0.5, label: "1/2" }
-                ]
-            },
-            {
-                title: "Pizza Slice Challenge",
-                target: 3/4,
-                targetLabel: "3/4",
-                fractions: [
-                    { value: 0.125, label: "1/8" },
-                    { value: 0.25, label: "1/4" },
-                    { value: 0.5, label: "1/2" },
-                    { value: 0.2, label: "1/5" }
-                ]
-            },
-            {
-                title: "Rectangle Fraction Challenge",
-                target: 1/2,
-                targetLabel: "1/2",
-                fractions: [
-                    { value: 0.1, label: "1/10" },
-                    { value: 0.2, label: "1/5" },
-                    { value: 0.25, label: "1/4" },
-                    { value: 0.33, label: "1/3" }
-                ]
-            }
+            { type: 'pizza', total: 8, target: 3, description: 'Select 3/8 of the Pizza' },
+            { type: 'cake', total: 4, target: 1, description: 'Select 1/4 of the Cake' },
+            { type: 'apple', total: 10, target: 2, description: 'Select 1/5 of the Apple' },
+            { type: 'chocolate', total: 6, target: 2, description: 'Select 1/3 of the Chocolate' }
         ];
 
-        let currentChallengeIndex = 0;
+        let currentChallenge = 0;
+        let isMuted = false;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const challengeTitle = document.getElementById('challengeTitle');
-            const targetFraction = document.getElementById('targetFraction');
-            const targetLabel = document.getElementById('targetLabel');
-            const fractionOptions = document.getElementById('fractionOptions');
-            const stackContents = document.getElementById('stackContents');
-            const successMessage = document.getElementById('successMessage');
-            const failureMessage = document.getElementById('failureMessage');
-            const resetButton = document.getElementById('resetButton');
-            const nextButton = document.getElementById('nextButton');
+        const fractionContainer = document.getElementById('fraction-container');
+        const challengeText = document.getElementById('challenge-text');
+        const checkAnswerBtn = document.getElementById('check-answer');
+        const nextChallengeBtn = document.getElementById('next-challenge');
+        const superheroMessage = document.getElementById('superhero-message');
+        const muteToggle = document.getElementById('mute-toggle');
 
-            function initializeChallenge(challenge) {
-                // Reset UI elements
-                challengeTitle.textContent = challenge.title;
-                targetFraction.style.height = `${challenge.target * 100}%`;
-                targetLabel.textContent = challenge.targetLabel;
-                stackContents.innerHTML = '';
-                successMessage.style.display = 'none';
-                failureMessage.style.display = 'none';
-
-                // Populate fraction options
-                fractionOptions.innerHTML = challenge.fractions.map(fraction => `
-                    <div class="fraction-option" data-value="${fraction.value}">
-                        ${fraction.label}
-                    </div>
-                `).join('');
+        function renderFractionPieces(total) {
+            fractionContainer.innerHTML = '';
+            for (let i = 0; i < total; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'fraction-piece';
+                piece.dataset.index = i;
+                piece.addEventListener('click', () => togglePiece(piece));
+                fractionContainer.appendChild(piece);
             }
+        }
 
-            function calculateTotal() {
-                return Array.from(stackContents.children)
-                    .reduce((sum, item) => sum + parseFloat(item.dataset.value), 0);
-            }
+        function togglePiece(piece) {
+            piece.classList.toggle('selected');
+        }
 
-            fractionOptions.addEventListener('click', (event) => {
-                const fractionOption = event.target.closest('.fraction-option');
-                if (fractionOption) {
-                    const value = parseFloat(fractionOption.dataset.value);
-                    const currentTotal = calculateTotal();
-                    const newTotal = currentTotal + value;
+        function checkAnswer() {
+            const selected = document.querySelectorAll('.fraction-piece.selected');
+            const { target } = challenges[currentChallenge];
+            const isCorrect = selected.length === target;
 
-                    // Create stacked item
-                    const stackedItem = document.createElement('div');
-                    stackedItem.classList.add('stacked-item');
-                    stackedItem.style.height = `${value * 300}px`;
-                    stackedItem.dataset.value = value;
-                    stackContents.appendChild(stackedItem);
-
-                    // Check challenge status
-                    const currentChallenge = challenges[currentChallengeIndex];
-                    if (Math.abs(newTotal - currentChallenge.target) < 0.01) {
-                        successMessage.style.display = 'block';
-                        failureMessage.style.display = 'none';
-                    } else if (newTotal > currentChallenge.target) {
-                        failureMessage.style.display = 'block';
-                        successMessage.style.display = 'none';
-                    }
-                }
-            });
-
-            resetButton.addEventListener('click', () => {
-                initializeChallenge(challenges[currentChallengeIndex]);
-            });
-
-            nextButton.addEventListener('click', () => {
-                // Move to next challenge or loop back to first
-                currentChallengeIndex = (currentChallengeIndex + 1) % challenges.length;
-                initializeChallenge(challenges[currentChallengeIndex]);
-            });
-
-            // Initialize first challenge
-            initializeChallenge(challenges[currentChallengeIndex]);
-        });
+            superheroMessage.textContent = isCorrect 
+              ? "You're correct!"
+              : "Retry!";
+        }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
