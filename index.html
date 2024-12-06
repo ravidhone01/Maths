@@ -3,136 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fraction Fun</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <title>Fraction Quiz for Kids</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .fraction-container {
-            text-align: center;
-            margin-bottom: 20px;
+        body {
+            background-color: #f9f9ff;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
         }
-
-        .fraction-image {
-            width: 200px;
-            height: 200px;
-            border: 1px solid black;
-            margin-bottom: 10px;
-        }
-
-        .fraction-options {
+        .question-container {
             display: flex;
-            flex-wrap: wrap;
             justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 20px;
         }
-
-        .fraction-option {
-            border: 1px solid black;
-            padding: 10px;
-            margin: 5px;
+        .pizza-container {
+            display: grid;
+            grid-template-columns: repeat(4, auto);
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .pizza-slice {
+            width: 80px;
+            height: 80px;
+            background: conic-gradient(#ffc107 0% 50%, #f8d54d 50% 100%);
+            border-radius: 50%;
+            position: relative;
             cursor: pointer;
+            transition: transform 0.2s ease;
         }
-
-        .correct {
-            background-color: lightgreen;
+        .pizza-slice::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20%;
+            height: 20%;
+            background: #fff;
+            border-radius: 50%;
         }
-
-        .incorrect {
-            background-color: lightcoral;
+        .pizza-slice.selected {
+            background: conic-gradient(#28a745 0% 50%, #4caf50 50% 100%);
+            transform: scale(1.1);
+        }
+        .result-message {
+            display: none;
+            font-size: 1.5rem;
+            color: #28a745;
+            margin: 20px;
+        }
+        .controls {
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Fraction Fun</h1>
-        <div id="quiz-container"></div>
-        <p id="result"></p>
-        <button id="next-question">Next Question</button>
-        <audio id="correct-sound" src="correct.mp3"></audio>
-        <audio id="incorrect-sound" src="incorrect.mp3"></audio>
-        <button id="mute-button">Mute</button>
+    <div class="container text-center question-container">
+        <h1 class="text-primary mb-4">🍕 Fraction Quiz for Kids 🍕</h1>
+        <h2 id="question-text" class="text-success">Select 1/4 of the Pizza!</h2>
+        <div id="pizza-container" class="pizza-container">
+            <!-- Pizza slices will be dynamically added here -->
+        </div>
+        <div class="controls">
+            <button id="check-answer" class="btn btn-primary">Check Answer</button>
+            <button id="next-question" class="btn btn-success" style="display:none;">Next Question</button>
+        </div>
+        <div id="result-message" class="result-message">🎉 Correct! Well done! 🎉</div>
+        <div class="mt-4">
+            <button id="mute-toggle" class="btn btn-warning">🔊 Mute Sounds</button>
+        </div>
     </div>
 
-    <script>
-        const quizContainer = document.getElementById('quiz-container');
-        const resultParagraph = document.getElementById('result');
-        const nextButton = document.getElementById('next-question');
-        const correctSound = document.getElementById('correct-sound');
-        const incorrectSound = document.getElementById('incorrect-sound');
-        const muteButton = document.getElementById('mute-button');
+    <audio id="correct-sound">
+        <source src="https://www.soundjay.com/button/sounds/button-09.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="wrong-sound">
+        <source src="https://www.soundjay.com/button/sounds/button-10.mp3" type="audio/mpeg">
+    </audio>
 
+    <script>
         const questions = [
-            {
-                image: 'fraction1.png',
-                correctAnswer: '1/4'
-            },
-            {
-                image: 'fraction2.png',
-                correctAnswer: '2/4'
-            },
-            // Add more questions here
+            { slices: 4, target: 1, text: "Select 1/4 of the Pizza!" },
+            { slices: 4, target: 2, text: "Select 2/4 of the Pizza!" },
+            { slices: 4, target: 3, text: "Select 3/4 of the Pizza!" },
+            { slices: 4, target: 4, text: "Select 4/4 of the Pizza!" },
+            { slices: 6, target: 2, text: "Select 2/6 of the Pizza!" },
+            { slices: 8, target: 4, text: "Select 4/8 of the Pizza!" },
+            { slices: 5, target: 3, text: "Select 3/5 of the Pizza!" },
+            { slices: 10, target: 7, text: "Select 7/10 of the Pizza!" },
+            { slices: 3, target: 1, text: "Select 1/3 of the Pizza!" },
+            { slices: 12, target: 6, text: "Select 6/12 of the Pizza!" }
         ];
 
-        let currentQuestionIndex = 0;
-        let score = 0;
+        let currentQuestion = 0;
+        let isMuted = false;
 
-        function loadQuestion() {
-            const currentQuestion = questions[currentQuestionIndex];
+        const pizzaContainer = document.getElementById("pizza-container");
+        const questionText = document.getElementById("question-text");
+        const checkAnswerButton = document.getElementById("check-answer");
+        const nextQuestionButton = document.getElementById("next-question");
+        const resultMessage = document.getElementById("result-message");
+        const muteToggle = document.getElementById("mute-toggle");
+        const correctSound = document.getElementById("correct-sound");
+        const wrongSound = document.getElementById("wrong-sound");
 
-            quizContainer.innerHTML = `
-                <div class="fraction-image">
-                    <img src="${currentQuestion.image}" alt="Fraction">
-                </div>
-                <div class="fraction-options">
-                    <div class="fraction-option">1/4</div>
-                    <div class="fraction-option">1/2</div>
-                    <div class="fraction-option">3/4</div>
-                    <div class="fraction-option">4/4</div>
-                </div>
-            `;
+        function renderQuestion() {
+            pizzaContainer.innerHTML = "";
+            const question = questions[currentQuestion];
 
-            const options = document.querySelectorAll('.fraction-option');
-            options.forEach(option => {
-                option.addEventListener('click', () => {
-                    const userAnswer = option.textContent;
-                    if (userAnswer === currentQuestion.correctAnswer) {
-                        option.classList.add('correct');
-                        resultParagraph.textContent = 'Correct!';
-                        score++;
-                        if (!muteButton.classList.contains('muted')) {
-                            correctSound.play();
-                        }
-                    } else {
-                        option.classList.add('incorrect');
-                        resultParagraph.textContent = `Incorrect. The correct answer is ${currentQuestion.correctAnswer}`;
-                        if (!muteButton.classList.contains('muted')) {
-                            incorrectSound.play();
-                        }
-                    }
-                    options.forEach(option => option.classList.add('disabled'));
-                    nextButton.disabled = false;
+            questionText.textContent = question.text;
+            for (let i = 0; i < question.slices; i++) {
+                const slice = document.createElement("div");
+                slice.classList.add("pizza-slice");
+                slice.dataset.index = i;
+                slice.addEventListener("click", () => {
+                    slice.classList.toggle("selected");
                 });
-            });
-        }
-
-        function nextQuestion() {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < questions.length) {
-                loadQuestion();
-            } else {
-                resultParagraph.textContent = `Quiz Complete! Your score is ${score}/${questions.length}`;
-                nextButton.style.display = 'none';
+                pizzaContainer.appendChild(slice);
             }
         }
 
-        loadQuestion();
-        nextButton.addEventListener('click', nextQuestion);
-        muteButton.addEventListener('click', () => {
-            muteButton.classList.toggle('muted');
-            if (muteButton.classList.contains('muted')) {
-                muteButton.textContent = 'Unmute';
-            } else {
-                muteButton.textContent = 'Mute';
+        function checkAnswer() {
+            const selectedSlices = document.querySelectorAll(".pizza-slice.selected");
+            const question = questions[currentQuestion];
+            const isCorrect = selectedSlices.length === question.target;
+
+            resultMessage.style.display = "block";
+            resultMessage.textContent = isCorrect
+                ? "🎉 Correct! Well done! 🎉"
+                : "❌ Try Again!";
+
+            if (!isMuted) {
+                isCorrect ? correctSound.play() : wrongSound.play();
             }
+
+            if (isCorrect) {
+                checkAnswerButton.style.display = "none";
+                nextQuestionButton.style.display = "inline-block";
+            }
+        }
+
+        function loadNextQuestion() {
+            currentQuestion = (currentQuestion + 1) % questions.length;
+            resultMessage.style.display = "none";
+            checkAnswerButton.style.display = "inline-block";
+            nextQuestionButton.style.display = "none";
+            renderQuestion();
+        }
+
+        muteToggle.addEventListener("click", () => {
+            isMuted = !isMuted;
+            muteToggle.textContent = isMuted ? "🔇 Unmute Sounds" : "🔊 Mute Sounds";
         });
+
+        checkAnswerButton.addEventListener("click", checkAnswer);
+        nextQuestionButton.addEventListener("click", loadNextQuestion);
+
+        renderQuestion();
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
