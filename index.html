@@ -2,86 +2,234 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pizza UI</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Fraction Challenge</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
+            background-color: #f0f2f5;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            background-color: #f8f9fa;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
         }
-        .pizza-container {
-            position: relative;
-            width: 300px;
+        .game-container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+        .challenge-area {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .target-container, .stack-container {
+            width: 45%;
             height: 300px;
-            border-radius: 50%;
-            background-color: #ffe5b4;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 2px solid #007bff;
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
         }
-        .slice {
+        .target-fraction {
             position: absolute;
-            width: 50%;
-            height: 50%;
-            background-color: #ffd27f;
-            clip-path: polygon(100% 0, 0 100%, 100% 100%);
-            transform-origin: 100% 100%;
-            border: 2px solid #d2691e;
+            bottom: 0;
+            width: 100%;
+            background-color: #007bff;
+            opacity: 0.5;
         }
-        .slice:nth-child(1) {
-            transform: rotate(0deg);
-            background-image: url('https://via.placeholder.com/150');
-            background-size: cover;
-        }
-        .slice:nth-child(2) {
-            transform: rotate(60deg);
-            background-image: url('https://via.placeholder.com/150');
-            background-size: cover;
-        }
-        .slice:nth-child(3) {
-            transform: rotate(120deg);
-            background-image: url('https://via.placeholder.com/150');
-            background-size: cover;
-        }
-        .slice:nth-child(4) {
-            transform: rotate(180deg);
-            background-image: url('https://via.placeholder.com/150');
-            background-size: cover;
-        }
-        .slice:nth-child(5) {
-            transform: rotate(240deg);
-            background-image: url('https://via.placeholder.com/150');
-            background-size: cover;
-        }
-        .slice:nth-child(6) {
-            transform: rotate(300deg);
-            background-image: url('https://via.placeholder.com/150');
-            background-size: cover;
-        }
-        .center {
+        .stack-contents {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 20%;
-            height: 20%;
-            background-color: #d2691e;
-            border-radius: 50%;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+        .stacked-item {
+            width: 100%;
+            background-color: #28a745;
+            margin-bottom: 2px;
+            transition: height 0.3s ease;
+        }
+        .fraction-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        .fraction-option {
+            display: inline-block;
+            padding: 10px;
+            margin: 5px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .fraction-option:hover {
+            background-color: #e9ecef;
+            transform: scale(1.05);
+        }
+        .feedback-area {
+            text-align: center;
+            margin: 15px 0;
+            height: 30px;
         }
     </style>
 </head>
 <body>
-    <div class="pizza-container">
-        <div class="slice"></div>
-        <div class="slice"></div>
-        <div class="slice"></div>
-        <div class="slice"></div>
-        <div class="slice"></div>
-        <div class="slice"></div>
-        <div class="center"></div>
+    <div class="container">
+        <div class="game-container">
+            <h2 class="text-center mb-4" id="challengeTitle">Fraction Challenge</h2>
+            
+            <div class="challenge-area">
+                <div class="target-container">
+                    <div class="target-fraction" id="targetFraction"></div>
+                    <div class="text-center mt-2">Target: <span id="targetLabel"></span></div>
+                </div>
+                <div class="stack-container">
+                    <div class="stack-contents" id="stackContents"></div>
+                    <div class="text-center mt-2">Your Stack</div>
+                </div>
+            </div>
+
+            <div class="feedback-area">
+                <div id="successMessage" class="text-success" style="display:none;">
+                    🎉 Congratulations! You solved the fraction challenge!
+                </div>
+                <div id="failureMessage" class="text-danger" style="display:none;">
+                    ❌ Oops! You've exceeded the target.
+                </div>
+            </div>
+
+            <div class="fraction-options" id="fractionOptions"></div>
+
+            <div class="text-center mt-3">
+                <button class="btn btn-primary me-2" id="resetButton">Reset</button>
+                <button class="btn btn-success" id="nextButton">Next Challenge</button>
+            </div>
+        </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const challenges = [
+            {
+                title: "Rod Fraction Challenge",
+                target: 2/3,
+                targetLabel: "2/3",
+                fractions: [
+                    { value: 0.1, label: "1/10" },
+                    { value: 0.2, label: "1/5" },
+                    { value: 0.25, label: "1/4" },
+                    { value: 0.33, label: "1/3" },
+                    { value: 0.5, label: "1/2" }
+                ]
+            },
+            {
+                title: "Pizza Slice Challenge",
+                target: 3/4,
+                targetLabel: "3/4",
+                fractions: [
+                    { value: 0.125, label: "1/8" },
+                    { value: 0.25, label: "1/4" },
+                    { value: 0.5, label: "1/2" },
+                    { value: 0.2, label: "1/5" }
+                ]
+            },
+            {
+                title: "Rectangle Fraction Challenge",
+                target: 1/2,
+                targetLabel: "1/2",
+                fractions: [
+                    { value: 0.1, label: "1/10" },
+                    { value: 0.2, label: "1/5" },
+                    { value: 0.25, label: "1/4" },
+                    { value: 0.33, label: "1/3" }
+                ]
+            }
+        ];
+
+        let currentChallengeIndex = 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const challengeTitle = document.getElementById('challengeTitle');
+            const targetFraction = document.getElementById('targetFraction');
+            const targetLabel = document.getElementById('targetLabel');
+            const fractionOptions = document.getElementById('fractionOptions');
+            const stackContents = document.getElementById('stackContents');
+            const successMessage = document.getElementById('successMessage');
+            const failureMessage = document.getElementById('failureMessage');
+            const resetButton = document.getElementById('resetButton');
+            const nextButton = document.getElementById('nextButton');
+
+            function initializeChallenge(challenge) {
+                // Reset UI elements
+                challengeTitle.textContent = challenge.title;
+                targetFraction.style.height = `${challenge.target * 100}%`;
+                targetLabel.textContent = challenge.targetLabel;
+                stackContents.innerHTML = '';
+                successMessage.style.display = 'none';
+                failureMessage.style.display = 'none';
+
+                // Populate fraction options
+                fractionOptions.innerHTML = challenge.fractions.map(fraction => `
+                    <div class="fraction-option" data-value="${fraction.value}">
+                        ${fraction.label}
+                    </div>
+                `).join('');
+            }
+
+            function calculateTotal() {
+                return Array.from(stackContents.children)
+                    .reduce((sum, item) => sum + parseFloat(item.dataset.value), 0);
+            }
+
+            fractionOptions.addEventListener('click', (event) => {
+                const fractionOption = event.target.closest('.fraction-option');
+                if (fractionOption) {
+                    const value = parseFloat(fractionOption.dataset.value);
+                    const currentTotal = calculateTotal();
+                    const newTotal = currentTotal + value;
+
+                    // Create stacked item
+                    const stackedItem = document.createElement('div');
+                    stackedItem.classList.add('stacked-item');
+                    stackedItem.style.height = `${value * 300}px`;
+                    stackedItem.dataset.value = value;
+                    stackContents.appendChild(stackedItem);
+
+                    // Check challenge status
+                    const currentChallenge = challenges[currentChallengeIndex];
+                    if (Math.abs(newTotal - currentChallenge.target) < 0.01) {
+                        successMessage.style.display = 'block';
+                        failureMessage.style.display = 'none';
+                    } else if (newTotal > currentChallenge.target) {
+                        failureMessage.style.display = 'block';
+                        successMessage.style.display = 'none';
+                    }
+                }
+            });
+
+            resetButton.addEventListener('click', () => {
+                initializeChallenge(challenges[currentChallengeIndex]);
+            });
+
+            nextButton.addEventListener('click', () => {
+                // Move to next challenge or loop back to first
+                currentChallengeIndex = (currentChallengeIndex + 1) % challenges.length;
+                initializeChallenge(challenges[currentChallengeIndex]);
+            });
+
+            // Initialize first challenge
+            initializeChallenge(challenges[currentChallengeIndex]);
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
