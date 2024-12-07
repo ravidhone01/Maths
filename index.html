@@ -56,36 +56,37 @@
         const questions = [
             {
                 question: "Select 1/2 of the circle",
-                correctSegments: [2, 4]
+                correctSegments: [2, 4] // This means "select any 2 segments"
             },
             {
                 question: "Select 1/4 of the circle",
-                correctSegments: [1]
+                correctSegments: [1] // "select any 1 segment"
             },
             {
                 question: "Select 3/4 of the circle",
-                correctSegments: [1, 2, 3]
+                correctSegments: [1, 2, 3] // "select any 3 segments"
             }
         ];
 
         const creativePrompts = [
-            "Fantastic work! 🌈", 
-            "You're a fraction master! 🎉", 
-            "Math genius alert! 🚀"
+            "Amazing! You're a fraction master!",
+            "Great job! Keep up the awesome work!",
+            "Fantastic! You're doing so well!",
+            "Correct! You're crushing this quiz!"
         ];
 
         let currentQuestionIndex = 0;
         const segments = document.querySelectorAll('.segment');
         const questionText = document.getElementById('question-text');
         const feedbackElement = document.getElementById('feedback');
-        const nextButton = document.getElementById('next-btn');
         const checkButton = document.getElementById('check-btn');
+        const nextButton = document.getElementById('next-btn');
 
         function setupQuestion() {
             // Reset previous state
             segments.forEach(segment => segment.classList.remove('selected'));
             feedbackElement.textContent = '';
-            feedbackElement.style.color = '';
+            checkButton.style.display = 'block';
             nextButton.style.display = 'none';
 
             // Set current question
@@ -95,13 +96,10 @@
 
         function checkAnswer() {
             const currentQuestion = questions[currentQuestionIndex];
-            const selectedSegments = Array.from(segments)
-                .filter(segment => segment.classList.contains('selected'))
-                .map((segment, index) => index + 1);
+            const selectedSegments = Array.from(segments).filter(segment => segment.classList.contains('selected'));
 
-            // Compare selected segments with correct segments
-            const isCorrect = selectedSegments.length === currentQuestion.correctSegments.length && 
-                selectedSegments.every(segment => currentQuestion.correctSegments.includes(segment));
+            // Check if the count of selected segments matches the required count
+            const isCorrect = selectedSegments.length === currentQuestion.correctSegments.length;
 
             if (isCorrect) {
                 feedbackElement.textContent = creativePrompts[Math.floor(Math.random() * creativePrompts.length)];
@@ -121,14 +119,13 @@
             });
         });
 
-        // Check answer button
+        // Check Answer button
         checkButton.addEventListener('click', checkAnswer);
 
         // Next question button
         nextButton.addEventListener('click', () => {
             currentQuestionIndex++;
             if (currentQuestionIndex < questions.length) {
-                checkButton.style.display = 'block';
                 setupQuestion();
             } else {
                 questionText.textContent = 'Quiz Complete!';
