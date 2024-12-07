@@ -20,6 +20,8 @@
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 800px;
         }
         .segment {
             transition: fill 0.3s ease;
@@ -33,46 +35,58 @@
             font-size: 18px;
             font-weight: bold;
         }
+        .concept-list {
+            margin-bottom: 20px;
+        }
+        .concept-list button {
+            margin: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="quiz-container">
-        <h2 id="question-text">Select the correct fraction</h2>
-        
-        <svg width="300" height="300" viewBox="0 0 300 300">
-            <!-- Four precise segments -->
+        <h2 id="question-text">Fraction Quiz</h2>
+
+        <div class="concept-list">
+            <button class="btn btn-outline-primary" onclick="loadQuestion(0)">Introduction to Fractions</button>
+            <button class="btn btn-outline-primary" onclick="loadQuestion(1)">Fraction Comparison</button>
+            <button class="btn btn-outline-primary" onclick="loadQuestion(2)">Fraction Operations</button>
+        </div>
+
+        <svg id="circle-visual" width="300" height="300" viewBox="0 0 300 300" style="display:none;">
             <path class="segment" d="M150,150 L150,5 A145,145 0 0,1 285,150 L150,150 Z" fill="#e0e0e0" stroke="white" stroke-width="3"/>
             <path class="segment" d="M150,150 L285,150 A145,145 0 0,1 150,295 L150,150 Z" fill="#e0e0e0" stroke="white" stroke-width="3"/>
             <path class="segment" d="M150,150 L150,295 A145,145 0 0,1 15,150 L150,150 Z" fill="#e0e0e0" stroke="white" stroke-width="3"/>
             <path class="segment" d="M150,150 L15,150 A145,145 0 0,1 150,5 L150,150 Z" fill="#e0e0e0" stroke="white" stroke-width="3"/>
         </svg>
-        
+
+        <div id="custom-question" style="display:none;">
+            <label for="fraction-input">Enter a fraction (e.g., 3/4):</label>
+            <input type="text" id="fraction-input" class="form-control" style="max-width: 200px; margin: 10px auto;">
+            <button class="btn btn-success" onclick="processCustomQuestion()">Submit</button>
+        </div>
+
         <div id="feedback" class="text-center"></div>
-        <button id="check-btn" class="btn btn-success mt-3">Check Answer</button>
-        <button id="next-btn" class="btn btn-primary mt-3" style="display:none;">Next Question</button>
+        <button id="check-btn" class="btn btn-success mt-3" style="display:none;" onclick="checkAnswer()">Check Answer</button>
+        <button id="next-btn" class="btn btn-primary mt-3" style="display:none;" onclick="nextQuestion()">Next Question</button>
     </div>
 
     <script>
         const questions = [
             {
+                type: "select",
                 question: "Select 1/2 of the circle",
-                correctSegments: [2, 4] // This means "select any 2 segments"
+                correctSegments: 2
             },
             {
+                type: "select",
                 question: "Select 1/4 of the circle",
-                correctSegments: [1] // "select any 1 segment"
+                correctSegments: 1
             },
             {
-                question: "Select 3/4 of the circle",
-                correctSegments: [1, 2, 3] // "select any 3 segments"
+                type: "custom",
+                question: "Divide the circle into equal parts and highlight a fraction",
             }
-        ];
-
-        const creativePrompts = [
-            "Amazing! You're a fraction master!",
-            "Great job! Keep up the awesome work!",
-            "Fantastic! You're doing so well!",
-            "Correct! You're crushing this quiz!"
         ];
 
         let currentQuestionIndex = 0;
@@ -81,62 +95,86 @@
         const feedbackElement = document.getElementById('feedback');
         const checkButton = document.getElementById('check-btn');
         const nextButton = document.getElementById('next-btn');
+        const circleVisual = document.getElementById('circle-visual');
+        const customQuestion = document.getElementById('custom-question');
 
-        function setupQuestion() {
-            // Reset previous state
-            segments.forEach(segment => segment.classList.remove('selected'));
+        function loadQuestion(index) {
+            currentQuestionIndex = index;
+            const question = questions[index];
+
+            questionText.textContent = question.question;
             feedbackElement.textContent = '';
-            checkButton.style.display = 'block';
-            nextButton.style.display = 'none';
 
-            // Set current question
-            const currentQuestion = questions[currentQuestionIndex];
-            questionText.textContent = currentQuestion.question;
+            if (question.type === "select") {
+                circleVisual.style.display = "block";
+                customQuestion.style.display = "none";
+                checkButton.style.display = "block";
+
+                segments.forEach(segment => segment.classList.remove('selected'));
+            } else if (question.type === "custom") {
+                circleVisual.style.display = "none";
+                customQuestion.style.display = "block";
+                checkButton.style.display = "none";
+            }
         }
 
         function checkAnswer() {
-            const currentQuestion = questions[currentQuestionIndex];
-            const selectedSegments = Array.from(segments).filter(segment => segment.classList.contains('selected'));
+            const question = questions[currentQuestionIndex];
+            const selectedSegments = Array.from(segments).filter(segment => segment.classList.contains('selected')).length;
 
-            // Check if the count of selected segments matches the required count
-            const isCorrect = selectedSegments.length === currentQuestion.correctSegments.length;
-
-            if (isCorrect) {
-                feedbackElement.textContent = creativePrompts[Math.floor(Math.random() * creativePrompts.length)];
+            if (selectedSegments === question.correctSegments) {
+                feedbackElement.textContent = "Correct!";
                 feedbackElement.style.color = 'green';
                 nextButton.style.display = 'block';
                 checkButton.style.display = 'none';
             } else {
-                feedbackElement.textContent = 'Try again! 🤔';
+                feedbackElement.textContent = "Try again!";
                 feedbackElement.style.color = 'red';
             }
         }
 
-        // Add event listeners to segments
+        function processCustomQuestion() {
+            const input = document.getElementById('fraction-input').value;
+            const [numerator, denominator] = input.split('/').map(Number);
+
+            if (!numerator || !denominator || numerator > denominator) {
+                feedbackElement.textContent = "Invalid fraction! Try again.";
+                feedbackElement.style.color = 'red';
+                return;
+            }
+
+            circleVisual.style.display = "block";
+            customQuestion.style.display = "none";
+
+            segments.forEach((segment, index) => {
+                segment.classList.remove('selected');
+                segment.style.fill = index < numerator ? '#4CAF50' : '#e0e0e0';
+            });
+
+            feedbackElement.textContent = `You divided the circle into ${denominator} parts and selected ${numerator} parts.`;
+            feedbackElement.style.color = 'green';
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex + 1 < questions.length) {
+                loadQuestion(currentQuestionIndex + 1);
+            } else {
+                questionText.textContent = "Quiz Complete!";
+                circleVisual.style.display = "none";
+                customQuestion.style.display = "none";
+                feedbackElement.textContent = "Great job completing the quiz!";
+                checkButton.style.display = "none";
+                nextButton.style.display = "none";
+            }
+        }
+
         segments.forEach(segment => {
             segment.addEventListener('click', () => {
                 segment.classList.toggle('selected');
             });
         });
 
-        // Check Answer button
-        checkButton.addEventListener('click', checkAnswer);
-
-        // Next question button
-        nextButton.addEventListener('click', () => {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < questions.length) {
-                setupQuestion();
-            } else {
-                questionText.textContent = 'Quiz Complete!';
-                document.querySelector('svg').style.display = 'none';
-                feedbackElement.textContent = 'Great job learning fractions!';
-                nextButton.style.display = 'none';
-            }
-        });
-
-        // Start the quiz
-        setupQuestion();
+        loadQuestion(0);
     </script>
 </body>
 </html>
