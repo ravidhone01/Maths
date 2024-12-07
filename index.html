@@ -2,234 +2,144 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Fraction Challenge</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraction Circle Quiz</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f0f2f5;
+            background-color: #f0f8ff;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
+            height: 100vh;
             font-family: Arial, sans-serif;
         }
-        .game-container {
-            background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            padding: 20px;
-            width: 100%;
-            max-width: 600px;
-        }
-        .challenge-area {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        .target-container, .stack-container {
-            width: 45%;
-            height: 300px;
-            border: 2px solid #007bff;
-            position: relative;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .target-fraction {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            background-color: #007bff;
-            opacity: 0.5;
-        }
-        .stack-contents {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            display: flex;
-            flex-direction: column-reverse;
-        }
-        .stacked-item {
-            width: 100%;
-            background-color: #28a745;
-            margin-bottom: 2px;
-            transition: height 0.3s ease;
-        }
-        .fraction-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
-        .fraction-option {
-            display: inline-block;
-            padding: 10px;
-            margin: 5px;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .fraction-option:hover {
-            background-color: #e9ecef;
-            transform: scale(1.05);
-        }
-        .feedback-area {
+        .quiz-container {
             text-align: center;
-            margin: 15px 0;
-            height: 30px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .segment {
+            transition: fill 0.3s ease;
+            cursor: pointer;
+        }
+        .segment.selected {
+            fill: #4CAF50;
+        }
+        #feedback {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="game-container">
-            <h2 class="text-center mb-4" id="challengeTitle">Fraction Challenge</h2>
-            
-            <div class="challenge-area">
-                <div class="target-container">
-                    <div class="target-fraction" id="targetFraction"></div>
-                    <div class="text-center mt-2">Target: <span id="targetLabel"></span></div>
-                </div>
-                <div class="stack-container">
-                    <div class="stack-contents" id="stackContents"></div>
-                    <div class="text-center mt-2">Your Stack</div>
-                </div>
-            </div>
-
-            <div class="feedback-area">
-                <div id="successMessage" class="text-success" style="display:none;">
-                    🎉 Congratulations! You solved the fraction challenge!
-                </div>
-                <div id="failureMessage" class="text-danger" style="display:none;">
-                    ❌ Oops! You've exceeded the target.
-                </div>
-            </div>
-
-            <div class="fraction-options" id="fractionOptions"></div>
-
-            <div class="text-center mt-3">
-                <button class="btn btn-primary me-2" id="resetButton">Reset</button>
-                <button class="btn btn-success" id="nextButton">Next Challenge</button>
-            </div>
-        </div>
+    <div class="quiz-container">
+        <h2 id="question-text">Select the correct fraction</h2>
+        
+        <svg width="300" height="300" viewBox="0 0 300 300">
+            <!-- Four precise segments -->
+            <path class="segment" d="M150,150 L150,5 A145,145 0 0,1 285,150 L150,150 Z" fill="#e0e0e0" stroke="white" stroke-width="3"/>
+            <path class="segment" d="M150,150 L285,150 A145,145 0 0,1 150,295 L150,150 Z" fill="#e0e0e0" stroke="white" stroke-width="3"/>
+            <path class="segment" d="M150,150 L150,295 A145,145 0 0,1 15,150 L150,150 Z" fill="#e0e0e0" stroke="white" stroke-width="3"/>
+            <path class="segment" d="M150,150 L15,150 A145,145 0 0,1 150,5 L150,150 Z" fill="#e0e0e0" stroke="white" stroke-width="3"/>
+        </svg>
+        
+        <div id="feedback" class="text-center"></div>
+        <button id="check-btn" class="btn btn-success mt-3">Check Answer</button>
+        <button id="next-btn" class="btn btn-primary mt-3" style="display:none;">Next Question</button>
     </div>
 
     <script>
-        const challenges = [
+        const questions = [
             {
-                title: "Rod Fraction Challenge",
-                target: 2/3,
-                targetLabel: "2/3",
-                fractions: [
-                    { value: 0.1, label: "1/10" },
-                    { value: 0.2, label: "1/5" },
-                    { value: 0.25, label: "1/4" },
-                    { value: 0.33, label: "1/3" },
-                    { value: 0.5, label: "1/2" }
-                ]
+                question: "Select 1/2 of the circle",
+                correctSegments: [2, 4]
             },
             {
-                title: "Pizza Slice Challenge",
-                target: 3/4,
-                targetLabel: "3/4",
-                fractions: [
-                    { value: 0.125, label: "1/8" },
-                    { value: 0.25, label: "1/4" },
-                    { value: 0.5, label: "1/2" },
-                    { value: 0.2, label: "1/5" }
-                ]
+                question: "Select 1/4 of the circle",
+                correctSegments: [1]
             },
             {
-                title: "Rectangle Fraction Challenge",
-                target: 1/2,
-                targetLabel: "1/2",
-                fractions: [
-                    { value: 0.1, label: "1/10" },
-                    { value: 0.2, label: "1/5" },
-                    { value: 0.25, label: "1/4" },
-                    { value: 0.33, label: "1/3" }
-                ]
+                question: "Select 3/4 of the circle",
+                correctSegments: [1, 2, 3]
             }
         ];
 
-        let currentChallengeIndex = 0;
+        const creativePrompts = [
+            "Fantastic work! 🌈", 
+            "You're a fraction master! 🎉", 
+            "Math genius alert! 🚀"
+        ];
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const challengeTitle = document.getElementById('challengeTitle');
-            const targetFraction = document.getElementById('targetFraction');
-            const targetLabel = document.getElementById('targetLabel');
-            const fractionOptions = document.getElementById('fractionOptions');
-            const stackContents = document.getElementById('stackContents');
-            const successMessage = document.getElementById('successMessage');
-            const failureMessage = document.getElementById('failureMessage');
-            const resetButton = document.getElementById('resetButton');
-            const nextButton = document.getElementById('nextButton');
+        let currentQuestionIndex = 0;
+        const segments = document.querySelectorAll('.segment');
+        const questionText = document.getElementById('question-text');
+        const feedbackElement = document.getElementById('feedback');
+        const nextButton = document.getElementById('next-btn');
+        const checkButton = document.getElementById('check-btn');
 
-            function initializeChallenge(challenge) {
-                // Reset UI elements
-                challengeTitle.textContent = challenge.title;
-                targetFraction.style.height = `${challenge.target * 100}%`;
-                targetLabel.textContent = challenge.targetLabel;
-                stackContents.innerHTML = '';
-                successMessage.style.display = 'none';
-                failureMessage.style.display = 'none';
+        function setupQuestion() {
+            // Reset previous state
+            segments.forEach(segment => segment.classList.remove('selected'));
+            feedbackElement.textContent = '';
+            feedbackElement.style.color = '';
+            nextButton.style.display = 'none';
 
-                // Populate fraction options
-                fractionOptions.innerHTML = challenge.fractions.map(fraction => `
-                    <div class="fraction-option" data-value="${fraction.value}">
-                        ${fraction.label}
-                    </div>
-                `).join('');
+            // Set current question
+            const currentQuestion = questions[currentQuestionIndex];
+            questionText.textContent = currentQuestion.question;
+        }
+
+        function checkAnswer() {
+            const currentQuestion = questions[currentQuestionIndex];
+            const selectedSegments = Array.from(segments)
+                .filter(segment => segment.classList.contains('selected'))
+                .map((segment, index) => index + 1);
+
+            // Compare selected segments with correct segments
+            const isCorrect = selectedSegments.length === currentQuestion.correctSegments.length && 
+                selectedSegments.every(segment => currentQuestion.correctSegments.includes(segment));
+
+            if (isCorrect) {
+                feedbackElement.textContent = creativePrompts[Math.floor(Math.random() * creativePrompts.length)];
+                feedbackElement.style.color = 'green';
+                nextButton.style.display = 'block';
+                checkButton.style.display = 'none';
+            } else {
+                feedbackElement.textContent = 'Try again! 🤔';
+                feedbackElement.style.color = 'red';
             }
+        }
 
-            function calculateTotal() {
-                return Array.from(stackContents.children)
-                    .reduce((sum, item) => sum + parseFloat(item.dataset.value), 0);
-            }
-
-            fractionOptions.addEventListener('click', (event) => {
-                const fractionOption = event.target.closest('.fraction-option');
-                if (fractionOption) {
-                    const value = parseFloat(fractionOption.dataset.value);
-                    const currentTotal = calculateTotal();
-                    const newTotal = currentTotal + value;
-
-                    // Create stacked item
-                    const stackedItem = document.createElement('div');
-                    stackedItem.classList.add('stacked-item');
-                    stackedItem.style.height = `${value * 300}px`;
-                    stackedItem.dataset.value = value;
-                    stackContents.appendChild(stackedItem);
-
-                    // Check challenge status
-                    const currentChallenge = challenges[currentChallengeIndex];
-                    if (Math.abs(newTotal - currentChallenge.target) < 0.01) {
-                        successMessage.style.display = 'block';
-                        failureMessage.style.display = 'none';
-                    } else if (newTotal > currentChallenge.target) {
-                        failureMessage.style.display = 'block';
-                        successMessage.style.display = 'none';
-                    }
-                }
+        // Add event listeners to segments
+        segments.forEach(segment => {
+            segment.addEventListener('click', () => {
+                segment.classList.toggle('selected');
             });
-
-            resetButton.addEventListener('click', () => {
-                initializeChallenge(challenges[currentChallengeIndex]);
-            });
-
-            nextButton.addEventListener('click', () => {
-                // Move to next challenge or loop back to first
-                currentChallengeIndex = (currentChallengeIndex + 1) % challenges.length;
-                initializeChallenge(challenges[currentChallengeIndex]);
-            });
-
-            // Initialize first challenge
-            initializeChallenge(challenges[currentChallengeIndex]);
         });
+
+        // Check answer button
+        checkButton.addEventListener('click', checkAnswer);
+
+        // Next question button
+        nextButton.addEventListener('click', () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                checkButton.style.display = 'block';
+                setupQuestion();
+            } else {
+                questionText.textContent = 'Quiz Complete!';
+                document.querySelector('svg').style.display = 'none';
+                feedbackElement.textContent = 'Great job learning fractions!';
+                nextButton.style.display = 'none';
+            }
+        });
+
+        // Start the quiz
+        setupQuestion();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
