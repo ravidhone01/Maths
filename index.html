@@ -35,39 +35,21 @@
             font-size: 18px;
             font-weight: bold;
         }
-        .concept-list {
-            margin-bottom: 20px;
-        }
-        .concept-list button {
-            margin: 5px;
-        }
     </style>
 </head>
 <body>
     <div class="quiz-container">
         <h2 id="question-text">Fraction Quiz</h2>
 
-        <div class="concept-list">
-            <button class="btn btn-outline-primary" onclick="loadQuestion(0)">Introduction to Fractions</button>
-            <button class="btn btn-outline-primary" onclick="loadQuestion(1)">Fraction Comparison</button>
-            <button class="btn btn-outline-primary" onclick="loadQuestion(2)">Fraction Operations</button>
-        </div>
-
-        <svg id="circle-visual" width="300" height="300" viewBox="0 0 300 300" style="display:none;">
+        <svg id="circle-visual" width="300" height="300" viewBox="0 0 300 300">
             <path class="segment" d="M150,150 L150,5 A145,145 0 0,1 285,150 L150,150 Z" fill="#e0e0e0" stroke="white" stroke-width="3"/>
             <path class="segment" d="M150,150 L285,150 A145,145 0 0,1 150,295 L150,150 Z" fill="#e0e0e0" stroke="white" stroke-width="3"/>
             <path class="segment" d="M150,150 L150,295 A145,145 0 0,1 15,150 L150,150 Z" fill="#e0e0e0" stroke="white" stroke-width="3"/>
             <path class="segment" d="M150,150 L15,150 A145,145 0 0,1 150,5 L150,150 Z" fill="#e0e0e0" stroke="white" stroke-width="3"/>
         </svg>
 
-        <div id="custom-question" style="display:none;">
-            <label for="fraction-input">Enter a fraction (e.g., 3/4):</label>
-            <input type="text" id="fraction-input" class="form-control" style="max-width: 200px; margin: 10px auto;">
-            <button class="btn btn-success" onclick="processCustomQuestion()">Submit</button>
-        </div>
-
         <div id="feedback" class="text-center"></div>
-        <button id="check-btn" class="btn btn-success mt-3" style="display:none;" onclick="checkAnswer()">Check Answer</button>
+        <button id="check-btn" class="btn btn-success mt-3" onclick="checkAnswer()">Check Answer</button>
         <button id="next-btn" class="btn btn-primary mt-3" style="display:none;" onclick="nextQuestion()">Next Question</button>
     </div>
 
@@ -75,7 +57,7 @@
         const questions = [
             {
                 type: "select",
-                question: "Select 1/2 of the circle",
+                question: "Select 2/4 of the circle",
                 correctSegments: 2
             },
             {
@@ -84,8 +66,14 @@
                 correctSegments: 1
             },
             {
-                type: "custom",
-                question: "Divide the circle into equal parts and highlight a fraction",
+                type: "select",
+                question: "Select 3/4 of the circle",
+                correctSegments: 3
+            },
+            {
+                type: "select",
+                question: "Select 4/4 (the whole) of the circle",
+                correctSegments: 4
             }
         ];
 
@@ -95,8 +83,6 @@
         const feedbackElement = document.getElementById('feedback');
         const checkButton = document.getElementById('check-btn');
         const nextButton = document.getElementById('next-btn');
-        const circleVisual = document.getElementById('circle-visual');
-        const customQuestion = document.getElementById('custom-question');
 
         function loadQuestion(index) {
             currentQuestionIndex = index;
@@ -104,18 +90,9 @@
 
             questionText.textContent = question.question;
             feedbackElement.textContent = '';
-
-            if (question.type === "select") {
-                circleVisual.style.display = "block";
-                customQuestion.style.display = "none";
-                checkButton.style.display = "block";
-
-                segments.forEach(segment => segment.classList.remove('selected'));
-            } else if (question.type === "custom") {
-                circleVisual.style.display = "none";
-                customQuestion.style.display = "block";
-                checkButton.style.display = "none";
-            }
+            nextButton.style.display = 'none';
+            checkButton.style.display = 'block';
+            segments.forEach(segment => segment.classList.remove('selected'));
         }
 
         function checkAnswer() {
@@ -133,35 +110,11 @@
             }
         }
 
-        function processCustomQuestion() {
-            const input = document.getElementById('fraction-input').value;
-            const [numerator, denominator] = input.split('/').map(Number);
-
-            if (!numerator || !denominator || numerator > denominator) {
-                feedbackElement.textContent = "Invalid fraction! Try again.";
-                feedbackElement.style.color = 'red';
-                return;
-            }
-
-            circleVisual.style.display = "block";
-            customQuestion.style.display = "none";
-
-            segments.forEach((segment, index) => {
-                segment.classList.remove('selected');
-                segment.style.fill = index < numerator ? '#4CAF50' : '#e0e0e0';
-            });
-
-            feedbackElement.textContent = `You divided the circle into ${denominator} parts and selected ${numerator} parts.`;
-            feedbackElement.style.color = 'green';
-        }
-
         function nextQuestion() {
             if (currentQuestionIndex + 1 < questions.length) {
                 loadQuestion(currentQuestionIndex + 1);
             } else {
                 questionText.textContent = "Quiz Complete!";
-                circleVisual.style.display = "none";
-                customQuestion.style.display = "none";
                 feedbackElement.textContent = "Great job completing the quiz!";
                 checkButton.style.display = "none";
                 nextButton.style.display = "none";
